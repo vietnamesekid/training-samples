@@ -1,9 +1,27 @@
 # Training Samples
 
-A collection of sample projects for learning and practicing various programming languages.
+Hands-on projects for exploring systems programming languages — focusing on idioms, build systems, and testing patterns.
 
 ## Languages
 
-### Zig
+| Language | Status | Directory |
+| -------- | ------ | --------- |
+| Go | Planned | [go/](go/) |
+| Rust | Planned | [rust/](rust/) |
+| Zig | In progress | [zig/](zig/) |
 
-- **[hello_zig](zig/hello_zig/)** - Getting started with Zig: basic program structure, build system, testing, and fuzz testing. Built with Zig `0.15.2`.
+## Structure
+
+Each language has its own directory with a dedicated README covering project details, prerequisites, and usage instructions.
+
+```text
+.
+├── go/
+├── rust/
+└── zig/
+    └── hello_zig/
+```
+
+## Getting Started
+
+Navigate into any language directory and follow its README.
