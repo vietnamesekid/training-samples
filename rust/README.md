@@ -4,4 +4,4 @@ Practice projects for learning [Rust](https://www.rust-lang.org/).
 
 ## Projects
 
-_No projects yet. Stay tuned!_
+- **hello_world** — Basic "Hello, world!" program to get started with Rust.

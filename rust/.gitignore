@@ -1,0 +1,17 @@
+# Build output
+target/
+
+# Cargo lock files for libraries (keep for binaries)
+# Cargo.lock
+
+# Environment files
+.env
+.env.*
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# macOS
+.DS_Store
