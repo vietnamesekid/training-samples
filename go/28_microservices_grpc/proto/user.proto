@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+package user;
+
+option go_package = "github.com/tranminhquang/training-samples/go/28_microservices_grpc/pb";
+
+// UserService quản lý user data
+service UserService {
+  // GetUser lấy thông tin user theo ID
+  rpc GetUser(GetUserRequest) returns (GetUserResponse);
+
+  // ListUsers trả về danh sách users (server-side streaming)
+  rpc ListUsers(ListUsersRequest) returns (stream UserResponse);
+
+  // CreateUser tạo user mới
+  rpc CreateUser(CreateUserRequest) returns (UserResponse);
+}
+
+message GetUserRequest {
+  string user_id = 1;
+}
+
+message GetUserResponse {
+  UserResponse user = 1;
+}
+
+message ListUsersRequest {
+  int32 limit = 1;
+  int32 offset = 2;
+}
+
+message CreateUserRequest {
+  string name = 1;
+  string email = 2;
+}
+
+message UserResponse {
+  string id = 1;
+  string name = 2;
+  string email = 3;
+  string created_at = 4;
+}

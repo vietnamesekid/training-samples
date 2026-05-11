@@ -1,0 +1,109 @@
+package main
+
+import (
+	"context"
+	"fmt"
+	"time"
+
+	"golang.org/x/sync/errgroup"
+)
+
+// errgroup: chạy nhiều goroutines, collect errors, cancel tất cả nếu 1 fail
+// Tốt hơn WaitGroup khi cần error handling
+
+type UserProfile struct {
+	Name   string
+	Orders []string
+	Points int
+}
+
+func fetchUserName(ctx context.Context, userID int) (string, error) {
+	select {
+	case <-time.After(30 * time.Millisecond):
+		return fmt.Sprintf("User%d", userID), nil
+	case <-ctx.Done():
+		return "", ctx.Err()
+	}
+}
+
+func fetchUserOrders(ctx context.Context, userID int) ([]string, error) {
+	select {
+	case <-time.After(50 * time.Millisecond):
+		return []string{"order-1", "order-2"}, nil
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	}
+}
+
+func fetchUserPoints(ctx context.Context, userID int) (int, error) {
+	select {
+	case <-time.After(20 * time.Millisecond):
+		return 1500, nil
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	}
+}
+
+func demoErrGroup() {
+	ctx := context.Background()
+	userID := 42
+
+	fmt.Println("\n--- Parallel fetch với errgroup ---")
+
+	var profile UserProfile
+	g, ctx := errgroup.WithContext(ctx)
+
+	// Launch 3 goroutines cùng lúc
+	g.Go(func() error {
+		name, err := fetchUserName(ctx, userID)
+		if err != nil {
+			return fmt.Errorf("fetch name: %w", err)
+		}
+		profile.Name = name
+		return nil
+	})
+
+	g.Go(func() error {
+		orders, err := fetchUserOrders(ctx, userID)
+		if err != nil {
+			return fmt.Errorf("fetch orders: %w", err)
+		}
+		profile.Orders = orders
+		return nil
+	})
+
+	g.Go(func() error {
+		points, err := fetchUserPoints(ctx, userID)
+		if err != nil {
+			return fmt.Errorf("fetch points: %w", err)
+		}
+		profile.Points = points
+		return nil
+	})
+
+	// Wait chờ tất cả xong, trả về error đầu tiên (nếu có)
+	if err := g.Wait(); err != nil {
+		fmt.Printf("  Error: %v\n", err)
+	} else {
+		fmt.Printf("  Profile: name=%s, orders=%v, points=%d\n",
+			profile.Name, profile.Orders, profile.Points)
+	}
+
+	fmt.Println("\n--- errgroup với SetLimit ---")
+	// SetLimit: giới hạn số goroutines đồng thời
+	g2, _ := errgroup.WithContext(context.Background())
+	g2.SetLimit(3) // tối đa 3 goroutines cùng lúc
+
+	for i := range 10 {
+		task := i
+		g2.Go(func() error {
+			time.Sleep(10 * time.Millisecond)
+			fmt.Printf("  Task %d done\n", task)
+			return nil
+		})
+	}
+
+	if err := g2.Wait(); err != nil {
+		fmt.Printf("  Error: %v\n", err)
+	}
+}
