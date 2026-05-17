@@ -40,23 +40,52 @@ const (
 	Execute                        // 4   (100)
 )
 
+func (p Permission) Has(flags Permission) bool {
+	// "p có chứa toàn bộ bits của flags không?"
+	return (p & flags) == flags
+}
+
 func (p Permission) String() string {
+	// Trực tiếp
+
+	// result := ""
+	// if p&Read != 0 {
+	// 	result += "r"
+	// } else {
+	// 	result += "-"
+	// }
+	// if p&Write != 0 {
+	// 	result += "w"
+	// } else {
+	// 	result += "-"
+	// }
+	// if p&Execute != 0 {
+	// 	result += "x"
+	// } else {
+	// 	result += "-"
+	// }
+	// return result
+
+	// Dùng helper method
 	result := ""
-	if p&Read != 0 {
+	if p.Has(Read) {
 		result += "r"
 	} else {
 		result += "-"
 	}
-	if p&Write != 0 {
+
+	if p.Has(Write) {
 		result += "w"
 	} else {
 		result += "-"
 	}
-	if p&Execute != 0 {
+
+	if p.Has(Execute) {
 		result += "x"
 	} else {
 		result += "-"
 	}
+
 	return result
 }
 
@@ -78,10 +107,10 @@ func main() {
 	var age int = 10
 
 	// Cách 2: Short declaration := (CHỈ dùng trong function, phổ biến nhất)
-	city := "Hanoi"    // Go tự suy luận kiểu: string
-	count := 0         // int
-	pi := 3.14         // float64
-	isReady := true    // bool
+	city := "Hanoi" // Go tự suy luận kiểu: string
+	count := 0      // int
+	pi := 3.14      // float64
+	isReady := true // bool
 
 	// Cách 3: Khai báo nhiều biến cùng lúc
 	var (
@@ -113,23 +142,23 @@ func main() {
 	fmt.Println("\n=== 3. Bảng Kiểu Dữ Liệu ===")
 
 	// Integers: int, int8, int16, int32, int64
-	var i8 int8 = 127           // -128 đến 127
-	var i16 int16 = 32767       // -32768 đến 32767
-	var i32 int32 = 2147483647  // ≈ 2.1 tỷ
+	var i8 int8 = 127          // -128 đến 127
+	var i16 int16 = 32767      // -32768 đến 32767
+	var i32 int32 = 2147483647 // ≈ 2.1 tỷ
 	var i64 int64 = math.MaxInt64
-	var i int = 42              // 32 hoặc 64-bit tùy platform
+	var i int = 42 // 32 hoặc 64-bit tùy platform
 
 	// Unsigned: uint, uint8, uint16, uint32, uint64
-	var u8 uint8 = 255   // = byte (0 đến 255)
+	var u8 uint8 = 255 // = byte (0 đến 255)
 	var u16 uint16 = 65535
 	var u32 uint32 = 4294967295
 
 	// Float
-	var f32 float32 = 3.14  // ~7 chữ số thập phân
+	var f32 float32 = 3.14              // ~7 chữ số thập phân
 	var f64 float64 = 3.141592653589793 // ~15 chữ số thập phân, mặc định
 
 	// Special types
-	var b byte = 'A'  // byte = uint8, giá trị ASCII
+	var b byte = 'A' // byte = uint8, giá trị ASCII
 	var r rune = '🎯' // rune = int32, 1 Unicode code point
 
 	// Bool
@@ -166,10 +195,10 @@ func main() {
 
 	// String ↔ rune/byte
 	s := "Hello"
-	bytes := []byte(s)    // string → []byte (copy)
-	runes := []rune(s)    // string → []rune (copy)
-	s2 := string(bytes)   // []byte → string (copy)
-	s3 := string(runes)   // []rune → string (copy)
+	bytes := []byte(s)  // string → []byte (copy)
+	runes := []rune(s)  // string → []rune (copy)
+	s2 := string(bytes) // []byte → string (copy)
+	s3 := string(runes) // []rune → string (copy)
 	fmt.Printf("string=%q, bytes=%v, runes=%v\n", s, bytes, runes)
 	fmt.Printf("back to string: %q, %q\n", s2, s3)
 
