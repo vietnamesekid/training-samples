@@ -1,2 +1,6 @@
+# Zig
 .zig-cache
-zig-outgo/docs.md
+zig-out/
+
+# Go binaries (files with same name as directory, no extension)
+go/**/[0-9][0-9]_*
