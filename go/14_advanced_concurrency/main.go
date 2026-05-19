@@ -1,6 +1,6 @@
-// Bài 14: Advanced Concurrency Patterns
-// Chạy: go run .
-// go get golang.org/x/sync (nếu chưa có)
+// Lesson 14: Advanced Concurrency Patterns
+// Run: go run .
+// go get golang.org/x/sync (if not already installed)
 package main
 
 import "fmt"

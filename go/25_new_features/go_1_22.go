@@ -8,24 +8,24 @@ import (
 
 func demoGo122() {
 	fmt.Println("\n--- 1. Loop Variable Fix ---")
-	// TRƯỚC Go 1.22: loop variable được share giữa iterations
-	// Đây là lỗi classic #1 của Go:
+	// BEFORE Go 1.22: loop variable was shared between iterations
+	// This was Go's classic mistake #1:
 	//   for i := 0; i < 3; i++ {
-	//       go func() { fmt.Println(i) }() // in 3, 3, 3
+	//       go func() { fmt.Println(i) }() // prints 3, 3, 3
 	//   }
 	//
-	// Go 1.22+: mỗi iteration có biến riêng
+	// Go 1.22+: each iteration has its own variable
 	funcs := make([]func(), 3)
 	for i := range 3 {
-		i := i // không cần dòng này nữa từ Go 1.22!
+		i := i // no longer needed from Go 1.22!
 		funcs[i] = func() { fmt.Printf("  i = %d\n", i) }
 	}
 	for _, f := range funcs {
-		f() // in 0, 1, 2 (đúng)
+		f() // prints 0, 1, 2 (correct)
 	}
 
 	fmt.Println("\n--- 2. for range integer (Go 1.22+) ---")
-	// range over integer — không cần range slice/channel
+	// range over integer — no need to range over slice/channel
 	sum := 0
 	for i := range 10 {
 		sum += i
@@ -39,7 +39,7 @@ func demoGo122() {
 	fmt.Println()
 
 	fmt.Println("\n--- 3. Enhanced HTTP Mux (Go 1.22+) ---")
-	// Mux giờ hỗ trợ method + path pattern: "METHOD /path/{var}"
+	// Mux now supports method + path pattern: "METHOD /path/{var}"
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("GET /users", func(w http.ResponseWriter, r *http.Request) {
@@ -47,7 +47,7 @@ func demoGo122() {
 	})
 
 	mux.HandleFunc("GET /users/{id}", func(w http.ResponseWriter, r *http.Request) {
-		id := r.PathValue("id") // Go 1.22+: lấy path variable
+		id := r.PathValue("id") // Go 1.22+: get path variable
 		fmt.Fprintf(w, "get user: %s", id)
 	})
 
@@ -60,7 +60,7 @@ func demoGo122() {
 		fmt.Fprintf(w, "delete user: %s", id)
 	})
 
-	// Test các routes
+	// Test the routes
 	tests := []struct {
 		method, path string
 	}{

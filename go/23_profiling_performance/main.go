@@ -1,5 +1,5 @@
-// Bài 23: Profiling & Performance — đo lường và tối ưu Go programs
-// Chạy: go run .
+// Lesson 23: Profiling & Performance — measuring and optimizing Go programs
+// Run: go run .
 // Profiling:
 //   go run . &  (start server)
 //   go tool pprof http://localhost:6060/debug/pprof/heap
@@ -24,7 +24,7 @@ import (
 func badStringConcat(n int) string {
 	s := ""
 	for i := range n {
-		s += fmt.Sprintf("item%d,", i) // tạo string mới mỗi lần → O(n²)
+		s += fmt.Sprintf("item%d,", i) // creates a new string each time → O(n²)
 	}
 	return s
 }
@@ -41,7 +41,7 @@ func goodStringConcat(n int) string {
 // === Slice Pre-allocation ===
 
 func badSliceAppend(n int) []int {
-	var s []int // len=0, cap=0 → nhiều realloc
+	var s []int // len=0, cap=0 → many reallocations
 	for i := range n {
 		s = append(s, i)
 	}
@@ -49,14 +49,14 @@ func badSliceAppend(n int) []int {
 }
 
 func goodSliceAppend(n int) []int {
-	s := make([]int, 0, n) // pre-allocate chính xác → 1 lần alloc
+	s := make([]int, 0, n) // pre-allocate exactly → 1 allocation
 	for i := range n {
 		s = append(s, i)
 	}
 	return s
 }
 
-// === Struct Field Alignment (từ bài 20) ===
+// === Struct Field Alignment (from lesson 20) ===
 
 type BadStruct struct {
 	A bool    // 1 + 7 padding
@@ -72,7 +72,7 @@ type GoodStruct struct {
 	// Total: 16 bytes
 }
 
-// === sync.Pool để tái sử dụng buffers ===
+// === sync.Pool for buffer reuse ===
 
 var bufferPool = sync.Pool{
 	New: func() any {
@@ -123,11 +123,11 @@ func printMemStats() {
 
 func main() {
 	fmt.Println("=== 1. Profiling Setup ===")
-	// Blank import _ "net/http/pprof" registers pprof handlers trên DefaultServeMux
+	// Blank import _ "net/http/pprof" registers pprof handlers on DefaultServeMux
 	go func() {
-		// Chạy pprof server trên port 6060
+		// Run pprof server on port 6060
 		if err := http.ListenAndServe(":6060", nil); err != nil {
-			// Server chỉ chạy để demo, không cần handle error
+			// Server only runs for demo, no need to handle error
 		}
 	}()
 	fmt.Println("  pprof available at: http://localhost:6060/debug/pprof/")

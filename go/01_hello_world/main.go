@@ -1,5 +1,5 @@
-// Bài 1: Hello World — điểm xuất phát của mọi chương trình Go
-// Chạy: go run .
+// Lesson 1: Hello World — the starting point of every Go program
+// Run: go run .
 // Build: go build -o hello && ./hello
 package main
 
@@ -9,20 +9,20 @@ import (
 )
 
 func main() {
-	// fmt.Println tự thêm newline, dùng khi in nhiều arguments
+	// fmt.Println automatically adds a newline, use it when printing multiple arguments
 	fmt.Println("Hello, World!")
 
-	// fmt.Printf dùng format string — không tự thêm newline
+	// fmt.Printf uses a format string — does not add a newline automatically
 	name := "Gopher"
 	fmt.Printf("Xin chào, %s!\n", name)
 
-	// fmt.Sprintf trả về string thay vì in ra
+	// fmt.Sprintf returns a string instead of printing it
 	msg := fmt.Sprintf("Go version: %s, Platform: %s/%s",
 		"1.26", "darwin", "arm64")
 	fmt.Println(msg)
 
-	// os.Args chứa các argument từ command line
-	// os.Args[0] là tên chương trình, os.Args[1:] là các argument
+	// os.Args holds arguments from the command line
+	// os.Args[0] is the program name, os.Args[1:] are the arguments
 	fmt.Println("\n=== Command-line arguments ===")
 	fmt.Printf("Program: %s\n", os.Args[0])
 	if len(os.Args) > 1 {
@@ -35,8 +35,8 @@ func main() {
 	fmt.Fprintln(os.Stdout, "\nĐây là stdout")
 	fmt.Fprintln(os.Stderr, "Đây là stderr (thường dùng cho lỗi)")
 
-	// os.Exit — thoát chương trình với exit code
-	// os.Exit(0) = thành công, os.Exit(1) = lỗi
-	// CẢNH BÁO: defer KHÔNG chạy khi gọi os.Exit
+	// os.Exit — exits the program with an exit code
+	// os.Exit(0) = success, os.Exit(1) = error
+	// WARNING: defer does NOT run when os.Exit is called
 	fmt.Println("\nChương trình kết thúc bình thường (exit code 0)")
 }

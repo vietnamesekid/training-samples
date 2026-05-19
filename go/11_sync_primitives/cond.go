@@ -7,10 +7,10 @@ import (
 )
 
 // === sync.Cond — conditional variable ===
-// Dùng khi: goroutine cần chờ một điều kiện trở nên đúng
-// Phổ biến hơn channel khi: nhiều waiters, cần broadcast
+// Use when: a goroutine needs to wait for a condition to become true
+// More common than channels when: many waiters, broadcast is needed
 
-// BlockingQueue: queue thread-safe với blocking get
+// BlockingQueue: thread-safe queue with blocking get
 type BlockingQueue struct {
 	mu    sync.Mutex
 	cond  *sync.Cond
@@ -27,7 +27,7 @@ func NewBlockingQueue(capacity int) *BlockingQueue {
 	return q
 }
 
-// Put: block nếu queue đầy
+// Put: blocks if queue is full
 func (q *BlockingQueue) Put(item any) {
 	q.mu.Lock()
 	for len(q.items) >= q.cap {
@@ -38,7 +38,7 @@ func (q *BlockingQueue) Put(item any) {
 	q.mu.Unlock()
 }
 
-// Get: block nếu queue rỗng
+// Get: blocks if queue is empty
 func (q *BlockingQueue) Get() any {
 	q.mu.Lock()
 	for len(q.items) == 0 {
@@ -46,7 +46,7 @@ func (q *BlockingQueue) Get() any {
 	}
 	item := q.items[0]
 	q.items = q.items[1:]
-	q.cond.Signal() // wake up one waiter (có thể là producer)
+	q.cond.Signal() // wake up one waiter (could be a producer)
 	q.mu.Unlock()
 	return item
 }
@@ -73,7 +73,7 @@ func NewWorkerGroup() *WorkerGroup {
 func (wg *WorkerGroup) Start() {
 	wg.mu.Lock()
 	wg.started = true
-	wg.cond.Broadcast() // wake up ALL waiters (khác Signal chỉ wake 1)
+	wg.cond.Broadcast() // wake up ALL waiters (unlike Signal which only wakes 1)
 	wg.mu.Unlock()
 }
 
@@ -86,7 +86,7 @@ func (wg *WorkerGroup) WaitForStart() {
 }
 
 func demoCond() {
-	fmt.Println("\n--- BlockingQueue với sync.Cond ---")
+	fmt.Println("\n--- BlockingQueue with sync.Cond ---")
 
 	q := NewBlockingQueue(3)
 	var wg sync.WaitGroup
@@ -112,7 +112,7 @@ func demoCond() {
 	wg.Wait()
 	fmt.Printf("  Queue empty: len=%d\n", q.Len())
 
-	fmt.Println("\n--- Broadcast: workers chờ signal start ---")
+	fmt.Println("\n--- Broadcast: workers waiting for start signal ---")
 	wg2 := NewWorkerGroup()
 	var mu sync.Mutex
 	started := make([]int, 0)
@@ -136,7 +136,7 @@ func demoCond() {
 	mu.Unlock()
 
 	fmt.Println("\n  Cond.Signal() vs Cond.Broadcast():")
-	fmt.Println("  Signal: wake up ONE waiter (biết chính xác ai cần wake)")
+	fmt.Println("  Signal: wake up ONE waiter (when you know exactly who needs to wake)")
 	fmt.Println("  Broadcast: wake up ALL waiters (e.g., config changed)")
 	fmt.Println()
 	fmt.Println("  Lưu ý: Trong thực tế, channel thường đủ dùng hơn sync.Cond")

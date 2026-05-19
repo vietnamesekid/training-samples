@@ -5,17 +5,17 @@ import (
 	"sync"
 )
 
-// SafeCounter bảo vệ counter với Mutex
-// Mutex: mutual exclusion — chỉ 1 goroutine được access cùng lúc
+// SafeCounter protects a counter with a Mutex
+// Mutex: mutual exclusion — only 1 goroutine can access at a time
 type SafeCounter struct {
 	mu    sync.Mutex
 	value int
 }
 
-// GOTCHA: Không copy Mutex! Luôn dùng pointer receiver khi có Mutex
+// GOTCHA: Never copy a Mutex! Always use pointer receiver when holding a Mutex
 func (c *SafeCounter) Increment() {
 	c.mu.Lock()
-	defer c.mu.Unlock() // defer đảm bảo luôn Unlock dù có panic
+	defer c.mu.Unlock() // defer ensures Unlock is always called even on panic
 	c.value++
 }
 
@@ -31,8 +31,8 @@ func (c *SafeCounter) Get() int {
 	return c.value
 }
 
-// ReadWriteCache dùng RWMutex — tối ưu khi đọc nhiều hơn viết
-// RWMutex: nhiều readers CÓ THỂ đọc cùng lúc, nhưng writer độc quyền
+// ReadWriteCache uses RWMutex — optimized for read-heavy workloads
+// RWMutex: multiple readers CAN read simultaneously, but writer gets exclusive access
 type ReadWriteCache struct {
 	mu   sync.RWMutex
 	data map[string]string
@@ -51,7 +51,7 @@ func (c *ReadWriteCache) Set(key, value string) {
 }
 
 func (c *ReadWriteCache) Get(key string) (string, bool) {
-	c.mu.RLock()          // shared read lock — nhiều goroutines có thể RLock cùng lúc
+	c.mu.RLock()          // shared read lock — multiple goroutines can RLock simultaneously
 	defer c.mu.RUnlock()
 	v, ok := c.data[key]
 	return v, ok
@@ -72,7 +72,7 @@ func demoMutex() {
 	counter := &SafeCounter{}
 	var wg sync.WaitGroup
 
-	// 1000 goroutines cùng increment
+	// 1000 goroutines incrementing concurrently
 	for range 1000 {
 		wg.Add(1)
 		go func() {

@@ -1,5 +1,5 @@
-// Bài 8: Packages & Modules — tổ chức code trong Go
-// Chạy: go run .
+// Lesson 8: Packages & Modules — organizing code in Go
+// Run: go run .
 package main
 
 import (
@@ -9,19 +9,19 @@ import (
 	"github.com/tranminhquang/training-samples/go/08_packages_modules/pkg/validator"
 )
 
-// Package-level variable — khởi tạo trước init()
+// Package-level variable — initialized before init()
 var greeting = "Hello"
 
-// init() chạy sau package-level vars, trước main()
-// Một package có thể có nhiều init() functions
-// Thứ tự: imported packages init() → current package vars → current package init() → main()
+// init() runs after package-level vars, before main()
+// A package can have multiple init() functions
+// Order: imported packages init() → current package vars → current package init() → main()
 func init() {
 	greeting = greeting + ", World"
 	fmt.Println("[init] greeting initialized:", greeting)
 }
 
 func init() {
-	// Có thể có nhiều init() — chạy theo thứ tự xuất hiện trong file
+	// Multiple init() functions are allowed — they run in the order they appear in the file
 	fmt.Println("[init] second init() runs after first")
 }
 
@@ -30,7 +30,7 @@ func main() {
 	fmt.Println("greeting:", greeting)
 
 	fmt.Println("\n=== Internal Package ===")
-	// internal/ package chỉ accessible trong module này
+	// internal/ package is only accessible within this module
 	cfg := config.Load()
 	fmt.Printf("Config: %+v\n", cfg)
 	fmt.Printf("DB URL: %s\n", cfg.DatabaseURL())

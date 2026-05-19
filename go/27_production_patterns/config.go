@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-// AppConfig chứa tất cả cấu hình của ứng dụng
+// AppConfig holds all application configuration
 type AppConfig struct {
 	// Server
 	Host string
@@ -26,7 +26,7 @@ type AppConfig struct {
 	LogLevel      string
 }
 
-// getEnv đọc env var với fallback default
+// getEnv reads an env var with a fallback default
 func getEnv(key, defaultVal string) string {
 	if val := os.Getenv(key); val != "" {
 		return val
@@ -61,8 +61,8 @@ func getEnvDuration(key string, defaultVal time.Duration) time.Duration {
 	return defaultVal
 }
 
-// LoadConfig đọc config từ environment variables
-// NGUYÊN TẮC: 12-factor app — config từ environment, không hardcode
+// LoadConfig reads config from environment variables
+// PRINCIPLE: 12-factor app — config from environment, not hardcoded
 func LoadConfig() AppConfig {
 	return AppConfig{
 		Host:           getEnv("APP_HOST", "0.0.0.0"),
@@ -87,7 +87,7 @@ func (c AppConfig) Validate() error {
 }
 
 func demoConfig() {
-	// Set một vài env vars để minh họa
+	// Set a few env vars to illustrate
 	os.Setenv("APP_PORT", "9090")
 	os.Setenv("LOG_LEVEL", "debug")
 	os.Setenv("ENABLE_METRICS", "false")

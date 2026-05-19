@@ -1,7 +1,7 @@
-// Bài 24: Go Runtime Internals — GMP Model & Memory Management
-// Chạy: go run .
-// Xem GMP scheduler trace: GODEBUG=schedtrace=1000 go run .
-// Xem GC trace: GODEBUG=gctrace=1 go run .
+// Lesson 24: Go Runtime Internals — GMP Model & Memory Management
+// Run: go run .
+// View GMP scheduler trace: GODEBUG=schedtrace=1000 go run .
+// View GC trace: GODEBUG=gctrace=1 go run .
 package main
 
 import (
@@ -17,13 +17,13 @@ import (
 // M = Machine (OS thread, managed by runtime)
 // P = Processor (logical CPU, controls goroutine scheduling)
 //
-// Số P = GOMAXPROCS (mặc định = số CPU cores)
-// Mỗi P có local run queue (LRQ) chứa goroutines
-// Work stealing: P rỗng lấy goroutines từ P khác
+// Number of P = GOMAXPROCS (default = number of CPU cores)
+// Each P has a local run queue (LRQ) holding goroutines
+// Work stealing: idle P takes goroutines from other Ps
 //
 // Goroutine states:
-//   Running: đang chạy trên M
-//   Runnable: sẵn sàng, chờ P
+//   Running: currently executing on M
+//   Runnable: ready, waiting for P
 //   Waiting: blocked (channel, syscall, sleep)
 
 func printRuntimeInfo() {

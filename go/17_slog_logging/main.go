@@ -1,5 +1,5 @@
-// Bài 17: Logging với slog — structured logging trong Go 1.21+
-// Chạy: go run .
+// Lesson 17: Logging with slog — structured logging in Go 1.21+
+// Run: go run .
 package main
 
 import (
@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-// === Custom Handler — gửi logs tới nhiều destinations ===
+// === Custom Handler — sends logs to multiple destinations ===
 
 type MultiHandler struct {
 	handlers []slog.Handler
@@ -59,15 +59,15 @@ func (h *MultiHandler) WithGroup(name string) slog.Handler {
 
 func main() {
 	fmt.Println("=== 1. Default Text Logger ===")
-	// slog.Default() dùng TextHandler ghi vào os.Stderr
+	// slog.Default() uses TextHandler writing to os.Stderr
 	slog.Info("application starting", "version", "1.0.0", "env", "development")
 	slog.Warn("disk usage high", "percent", 85, "path", "/var/log")
 	slog.Error("connection failed", "host", "db.example.com", "port", 5432)
 
 	fmt.Println("\n=== 2. Custom JSON Handler (production) ===")
 	jsonLogger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
-		Level:     slog.LevelDebug, // log semua levels
-		AddSource: true,            // thêm file:line vào log
+		Level:     slog.LevelDebug, // log all levels
+		AddSource: true,            // add file:line to log
 	}))
 	jsonLogger.Debug("debug message", "key", "value")
 	jsonLogger.Info("user created", "userID", 42, "email", "alice@example.com")
@@ -79,12 +79,12 @@ func main() {
 	textLogger.Info("server started", "addr", ":8080", "tls", false)
 
 	fmt.Println("\n=== 4. slog.SetDefault ===")
-	// Đặt global default logger — toàn bộ slog.* calls dùng logger này
+	// Set global default logger — all slog.* calls use this logger
 	slog.SetDefault(textLogger)
 	slog.Info("now using text logger globally")
 
 	fmt.Println("\n=== 5. Structured Attributes ===")
-	// Các Attr helper functions — type-safe hơn interface{}
+	// Attr helper functions — more type-safe than interface{}
 	jsonLogger.Info("order placed",
 		slog.Int("orderID", 12345),
 		slog.String("customerID", "C001"),
@@ -96,7 +96,7 @@ func main() {
 	)
 
 	fmt.Println("\n=== 6. logger.With() — persistent attributes ===")
-	// With(): tạo logger mới với attrs thêm vào mọi log record
+	// With(): creates a new logger with attrs added to every log record
 	requestLogger := jsonLogger.With(
 		slog.String("requestID", "req-abc-123"),
 		slog.String("userID", "user-456"),
@@ -105,7 +105,7 @@ func main() {
 	requestLogger.Info("query executed", "table", "users", "rows", 42)
 	requestLogger.Warn("slow query", "duration", 2500*time.Millisecond)
 
-	fmt.Println("\n=== 7. slog.Group — nhóm attributes ===")
+	fmt.Println("\n=== 7. slog.Group — group attributes ===")
 	jsonLogger.Info("database connected",
 		slog.Group("db",
 			slog.String("host", "localhost"),
@@ -122,7 +122,7 @@ func main() {
 	type reqKey struct{}
 	ctx := context.WithValue(context.Background(), reqKey{}, "req-789")
 
-	// logger.InfoContext: dùng context cho potential log filtering
+	// logger.InfoContext: uses context for potential log filtering
 	jsonLogger.InfoContext(ctx, "processing request",
 		slog.String("handler", "getUserProfile"),
 	)
@@ -138,12 +138,12 @@ func main() {
 	}
 
 	fmt.Println("\n=== 10. Multi-destination Logger ===")
-	// Gửi logs tới cả stdout (JSON) và stderr (text) cùng lúc
+	// Send logs to both stdout (JSON) and stderr (text) simultaneously
 	jsonHandler := slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo})
-	textHandler := slog.NewTextHandler(io.Discard, &slog.HandlerOptions{Level: slog.LevelError}) // chỉ errors tới stderr
+	textHandler := slog.NewTextHandler(io.Discard, &slog.HandlerOptions{Level: slog.LevelError}) // only errors to stderr
 	multiLogger := slog.New(NewMultiHandler(jsonHandler, textHandler))
-	multiLogger.Info("multi-destination log") // chỉ json handler in
-	multiLogger.Error("error to both destinations") // cả 2 handlers in
+	multiLogger.Info("multi-destination log") // only json handler prints
+	multiLogger.Error("error to both destinations") // both handlers print
 
 	fmt.Println("\n=== Best Practices ===")
 	fmt.Println("  - Dùng slog thay vì log.Printf (type-safe, structured)")

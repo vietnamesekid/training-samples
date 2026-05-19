@@ -6,23 +6,23 @@ import (
 )
 
 // === Benchmarks ===
-// Chạy: go test -bench=. -benchmem -benchtime=3s ./...
+// Run: go test -bench=. -benchmem -benchtime=3s ./...
 
-// BenchmarkReverse đo hiệu suất Reverse function
+// BenchmarkReverse measures the performance of the Reverse function
 func BenchmarkReverse(b *testing.B) {
 	input := "Hello, World! 🌍"
-	b.ResetTimer() // bỏ qua thời gian setup
+	b.ResetTimer() // ignore setup time
 	for range b.N {
 		Reverse(input)
 	}
 }
 
-// So sánh string concat với += vs strings.Builder
+// Compare string concat with += vs strings.Builder
 func BenchmarkStringConcat_Plus(b *testing.B) {
 	for range b.N {
 		s := ""
 		for range 100 {
-			s += "x" // O(n²): tạo string mới mỗi lần
+			s += "x" // O(n²): creates a new string each time
 		}
 		_ = s
 	}
@@ -39,8 +39,8 @@ func BenchmarkStringConcat_Builder(b *testing.B) {
 	}
 }
 
-// Go 1.24+: b.Loop() — chạy loop chính xác N lần
-// Đảm bảo benchmark không bị compiler optimize away
+// Go 1.24+: b.Loop() — runs the loop exactly N times
+// Ensures the benchmark is not optimized away by the compiler
 func BenchmarkReverse_Loop(b *testing.B) {
 	input := "Hello, World! 🌍"
 	for b.Loop() {
@@ -48,10 +48,10 @@ func BenchmarkReverse_Loop(b *testing.B) {
 	}
 }
 
-// BenchmarkCalculator với b.ReportAllocs()
+// BenchmarkCalculator with b.ReportAllocs()
 func BenchmarkCalculator_Add(b *testing.B) {
 	c := NewCalculator()
-	b.ReportAllocs() // in số allocations per iteration
+	b.ReportAllocs() // print allocations per iteration
 	b.ResetTimer()
 	for range b.N {
 		c.Add(1, 2)
@@ -64,7 +64,7 @@ func BenchmarkSliceAppend(b *testing.B) {
 		for range b.N {
 			var s []int
 			for i := range 1000 {
-				s = append(s, i) // nhiều reallocation
+				s = append(s, i) // many reallocations
 			}
 			_ = s
 		}
@@ -72,7 +72,7 @@ func BenchmarkSliceAppend(b *testing.B) {
 
 	b.Run("prealloc", func(b *testing.B) {
 		for range b.N {
-			s := make([]int, 0, 1000) // 1 lần alloc
+			s := make([]int, 0, 1000) // allocate once
 			for i := range 1000 {
 				s = append(s, i)
 			}

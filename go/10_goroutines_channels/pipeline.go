@@ -5,9 +5,9 @@ import (
 	"fmt"
 )
 
-// Pipeline pattern: chuỗi goroutines xử lý data theo stages
+// Pipeline pattern: a chain of goroutines processing data in stages
 // generate → square → print
-// Mỗi stage nhận từ upstream channel, xử lý, gửi sang downstream
+// Each stage receives from an upstream channel, processes, and sends to downstream
 
 // Stage 1: generate numbers
 func generate(ctx context.Context, nums ...int) <-chan int {
@@ -17,7 +17,7 @@ func generate(ctx context.Context, nums ...int) <-chan int {
 		for _, n := range nums {
 			select {
 			case out <- n:
-			case <-ctx.Done(): // dừng nếu context cancelled
+			case <-ctx.Done(): // stop if context is cancelled
 				return
 			}
 		}
@@ -71,9 +71,9 @@ func demoPipeline() {
 	}
 	// Output: 2, 5, 10, 17, 26  (n² + 1)
 
-	fmt.Println("\n--- Pipeline với early cancel ---")
+	fmt.Println("\n--- Pipeline with early cancel ---")
 	ctx2, cancel2 := context.WithCancel(context.Background())
-	defer cancel2() // đảm bảo cancel luôn được gọi
+	defer cancel2() // ensure cancel is always called
 
 	nums2 := generate(ctx2, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
 	squares2 := square(ctx2, nums2)
@@ -83,7 +83,7 @@ func demoPipeline() {
 		fmt.Printf("  value: %d\n", v)
 		count++
 		if count >= 3 {
-			cancel2() // hủy pipeline sau 3 giá trị
+			cancel2() // cancel pipeline after 3 values
 			break
 		}
 	}

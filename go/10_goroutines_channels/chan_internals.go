@@ -1,21 +1,21 @@
 //go:build ignore
 
-// === Channel Internals — mô phỏng hchan (Go runtime internal) ===
+// === Channel Internals — simulating hchan (Go runtime internal) ===
 //
-// File này là "documentation-as-code" — mô phỏng cách Go runtime
-// implement channel bên trong. Chạy: go run chan_internals.go
+// This file is "documentation-as-code" — simulating how the Go runtime
+// implements channels internally. Run: go run chan_internals.go
 //
-// Cấu trúc thật trong runtime/chan.go:
+// Actual structure in runtime/chan.go:
 //   type hchan struct {
-//       qcount   uint           // số phần tử trong buffer
-//       dataqsiz uint           // capacity của buffer
+//       qcount   uint           // number of elements in the buffer
+//       dataqsiz uint           // buffer capacity
 //       buf      unsafe.Pointer // buffer (circular array)
-//       elemsize uint16         // size của mỗi element
+//       elemsize uint16         // size of each element
 //       closed   uint32
-//       sendx    uint           // index gửi tiếp theo
-//       recvx    uint           // index nhận tiếp theo
-//       recvq    waitq          // queue goroutines đang chờ nhận
-//       sendq    waitq          // queue goroutines đang chờ gửi
+//       sendx    uint           // next send index
+//       recvx    uint           // next receive index
+//       recvq    waitq          // queue of goroutines waiting to receive
+//       sendq    waitq          // queue of goroutines waiting to send
 //       lock     mutex
 //   }
 
@@ -26,7 +26,7 @@ import (
 	"sync"
 )
 
-// sudog đại diện cho một Goroutine đang bị blocked (chờ gửi hoặc nhận)
+// sudog represents a Goroutine that is blocked (waiting to send or receive)
 type sudog struct {
 	g    *goroutine
 	elem any
@@ -34,14 +34,14 @@ type sudog struct {
 	prev *sudog
 }
 
-// goroutine giả lập một Goroutine đơn giản
+// goroutine simulates a simple Goroutine
 type goroutine struct {
 	id     int
 	result any
 	done   chan struct{}
 }
 
-// waitq là danh sách liên kết 2 chiều của các sudog
+// waitq is a doubly linked list of sudogs
 type waitq struct {
 	first *sudog
 	last  *sudog
@@ -73,7 +73,7 @@ func (q *waitq) dequeue() *sudog {
 	return s
 }
 
-// hchan mô phỏng cấu trúc nội bộ của channel trong Go runtime
+// hchan simulates the internal channel structure in the Go runtime
 type hchan struct {
 	buf      []any
 	dataqsiz uint
@@ -93,12 +93,12 @@ func makeHchan(size uint) *hchan {
 	}
 }
 
-// send mô phỏng ch <- val
+// send simulates ch <- val
 //
-// 3 trường hợp:
-//  1. Có Goroutine đang chờ nhận (recvq) → chuyển thẳng, không qua buffer
-//  2. Buffer còn chỗ → ghi vào buffer
-//  3. Buffer đầy hoặc Unbuffered → block Goroutine hiện tại vào sendq
+// 3 cases:
+//  1. A Goroutine is waiting to receive (recvq) → direct transfer, bypasses buffer
+//  2. Buffer has space → write to buffer
+//  3. Buffer is full or Unbuffered → block current Goroutine into sendq
 func (c *hchan) send(val any, g *goroutine) bool {
 	c.lock.Lock()
 
@@ -107,16 +107,16 @@ func (c *hchan) send(val any, g *goroutine) bool {
 		panic("send on closed channel")
 	}
 
-	// TH1: Có Goroutine đang chờ nhận → chuyển thẳng
+	// Case 1: A Goroutine is waiting to receive → direct transfer
 	if recv := c.recvq.dequeue(); recv != nil {
 		recv.g.result = val
-		close(recv.g.done) // "đánh thức" Goroutine đang chờ nhận
+		close(recv.g.done) // "wake up" the waiting receiver Goroutine
 		c.lock.Unlock()
 		fmt.Printf("[send] G%d → G%d (direct): %v\n", g.id, recv.g.id, val)
 		return true
 	}
 
-	// TH2: Buffer còn chỗ
+	// Case 2: Buffer has space
 	if c.qcount < c.dataqsiz {
 		c.buf[c.sendx] = val
 		c.sendx = (c.sendx + 1) % c.dataqsiz
@@ -126,16 +126,16 @@ func (c *hchan) send(val any, g *goroutine) bool {
 		return true
 	}
 
-	// TH3: Block — thêm Goroutine vào sendq
+	// Case 3: Block — add Goroutine to sendq
 	s := &sudog{g: g, elem: val}
 	c.sendq.enqueue(s)
 	c.lock.Unlock()
 	fmt.Printf("[send] G%d blocked (sendq), waiting to send: %v\n", g.id, val)
-	<-g.done // chờ được đánh thức
+	<-g.done // wait to be woken up
 	return true
 }
 
-// recv mô phỏng val := <-ch
+// recv simulates val := <-ch
 func (c *hchan) recv(g *goroutine) (any, bool) {
 	c.lock.Lock()
 
@@ -144,16 +144,16 @@ func (c *hchan) recv(g *goroutine) (any, bool) {
 		return nil, false
 	}
 
-	// TH1: Có Goroutine đang chờ gửi → nhận thẳng
+	// Case 1: A Goroutine is waiting to send → receive directly
 	if send := c.sendq.dequeue(); send != nil {
 		val := send.elem
-		close(send.g.done) // "đánh thức" Goroutine đang chờ gửi
+		close(send.g.done) // "wake up" the waiting sender Goroutine
 		c.lock.Unlock()
 		fmt.Printf("[recv] G%d ← G%d (direct): %v\n", g.id, send.g.id, val)
 		return val, true
 	}
 
-	// TH2: Buffer có dữ liệu
+	// Case 2: Buffer has data
 	if c.qcount > 0 {
 		val := c.buf[c.recvx]
 		c.buf[c.recvx] = nil
@@ -164,7 +164,7 @@ func (c *hchan) recv(g *goroutine) (any, bool) {
 		return val, true
 	}
 
-	// TH3: Block — thêm Goroutine vào recvq
+	// Case 3: Block — add Goroutine to recvq
 	s := &sudog{g: g}
 	c.recvq.enqueue(s)
 	c.lock.Unlock()

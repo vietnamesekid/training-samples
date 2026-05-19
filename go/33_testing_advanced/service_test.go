@@ -13,14 +13,14 @@ import (
 )
 
 // ============================================================
-// Hand-written Mocks (không cần mockery/gomock)
+// Hand-written Mocks (no mockery/gomock needed)
 // ============================================================
 
 // MockEmailSender records calls for assertions
 type MockEmailSender struct {
 	mu    sync.Mutex
 	calls []EmailCall
-	err   error // return này nếu != nil
+	err   error // return this if != nil
 }
 
 type EmailCall struct {
@@ -49,7 +49,7 @@ func (m *MockEmailSender) LastCall() (EmailCall, bool) {
 	return m.calls[len(m.calls)-1], true
 }
 
-// MockUserStore với configurable behaviors
+// MockUserStore with configurable behaviors
 type MockUserStore struct {
 	mu    sync.Mutex
 	users map[string]*User
@@ -89,7 +89,7 @@ func (m *MockUserStore) Save(_ context.Context, user *User) error {
 // ============================================================
 
 func requireNoError(t *testing.T, err error) {
-	t.Helper() // làm cho failure chỉ report dòng caller, không phải dòng helper
+	t.Helper() // makes failures report the caller's line, not the helper's line
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -103,7 +103,7 @@ func requireEqual[T comparable](t *testing.T, want, got T, msg string) {
 }
 
 // ============================================================
-// Table-driven tests với subtests
+// Table-driven tests with subtests
 // ============================================================
 
 func TestArithmetic(t *testing.T) {
@@ -261,10 +261,10 @@ func TestFormatUser_Golden(t *testing.T) {
 // ============================================================
 
 func TestTempDirAndCleanup(t *testing.T) {
-	// t.TempDir() tạo temp dir tự động cleanup sau test
+	// t.TempDir() creates a temp dir that auto-cleans up after the test
 	dir := t.TempDir()
 
-	// Tạo file trong temp dir
+	// Create file in temp dir
 	filePath := filepath.Join(dir, "test.txt")
 	os.WriteFile(filePath, []byte("test content"), 0644)
 
@@ -273,10 +273,10 @@ func TestTempDirAndCleanup(t *testing.T) {
 	requireNoError(t, err)
 	requireEqual(t, "test content", string(data), "file content")
 
-	// t.Cleanup() đăng ký function chạy sau test
+	// t.Cleanup() registers a function to run after the test
 	t.Cleanup(func() {
 		t.Log("cleanup: releasing resources")
-		// Trong thực tế: đóng DB connection, dừng server, etc.
+		// In practice: close DB connection, stop server, etc.
 	})
 
 	// Track side effects
@@ -288,7 +288,7 @@ func TestTempDirAndCleanup(t *testing.T) {
 
 	t.Cleanup(resource)
 
-	// Multiple cleanups chạy theo LIFO (giống defer)
+	// Multiple cleanups run in LIFO order (like defer)
 	t.Cleanup(func() {
 		if !cleaned {
 			t.Log("warning: resource not cleaned up yet")

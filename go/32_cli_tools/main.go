@@ -1,6 +1,6 @@
-// Bài 32: CLI Tools với Go
+// Lesson 32: CLI Tools with Go
 // flag package, subcommands, os/exec, stdin/stdout pipelines
-// Chạy: go run . [command] [flags]
+// Run: go run . [command] [flags]
 // Examples:
 //   go run . help
 //   go run . greet -name Alice
@@ -19,7 +19,7 @@ import (
 )
 
 func main() {
-	// Subcommand pattern — như git, go, docker
+	// Subcommand pattern — like git, go, docker
 	if len(os.Args) < 2 {
 		printHelp()
 		os.Exit(0)
@@ -170,9 +170,9 @@ func runExec(args []string) {
 		os.Exit(1)
 	}
 
-	_ = timeout // trong demo không implement timeout
+	_ = timeout // not implemented in demo
 
-	// Thực thi command
+	// Execute command
 	var cmd *exec.Cmd
 	if runtime.GOOS == "windows" {
 		cmd = exec.Command("cmd", "/C", *cmdFlag)
@@ -246,7 +246,7 @@ func demoExec() {
 		fmt.Printf("  go binary: %s\n", path)
 	}
 
-	// exec.Command với captured output
+	// exec.Command with captured output
 	cmd := exec.Command("go", "version")
 	out, err := cmd.Output() // captures stdout
 	if err != nil {
@@ -260,7 +260,7 @@ func demoExec() {
 	combined, _ := cmd2.CombinedOutput()
 	fmt.Printf("  GOPATH: %s", combined)
 
-	// os/exec NGUYÊN TẮC:
+	// os/exec PRINCIPLE:
 	fmt.Println("  CẢNH BÁO: không dùng shell injection!")
 	fmt.Println("  BAD:  exec.Command(\"sh\", \"-c\", \"ls \" + userInput) // command injection!")
 	fmt.Println("  GOOD: exec.Command(\"ls\", userInput) // args separated, safe")
@@ -269,11 +269,11 @@ func demoExec() {
 func showFlagBestPractices() {
 	fmt.Println("  flag package tips:")
 	fmt.Println()
-	fmt.Println("  1. Dùng flag.NewFlagSet cho subcommands (không share global flags)")
-	fmt.Println("  2. flag.ExitOnError → program exit nếu flag parse fail")
-	fmt.Println("  3. Đặt defaults có ý nghĩa, descriptions rõ ràng")
-	fmt.Println("  4. Kiểm tra flag.Args() cho positional arguments")
-	fmt.Println("  5. Dùng os.Stderr cho errors, os.Stdout cho output")
+	fmt.Println("  1. Use flag.NewFlagSet for subcommands (don't share global flags)")
+	fmt.Println("  2. flag.ExitOnError → program exits if flag parse fails")
+	fmt.Println("  3. Set meaningful defaults, clear descriptions")
+	fmt.Println("  4. Check flag.Args() for positional arguments")
+	fmt.Println("  5. Use os.Stderr for errors, os.Stdout for output")
 	fmt.Println()
 	fmt.Println("  Alternatives:")
 	fmt.Println("  - github.com/spf13/cobra: feature-rich CLI framework (kubectl, hugo)")

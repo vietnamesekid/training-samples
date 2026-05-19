@@ -1,7 +1,7 @@
-// Bài 20: unsafe Package — low-level memory operations
-// Chạy: go run .
-// CẢNH BÁO: unsafe phá vỡ type safety của Go
-// Chỉ dùng khi: performance critical, interop với C, zero-copy operations
+// Lesson 20: unsafe Package — low-level memory operations
+// Run: go run .
+// WARNING: unsafe breaks Go's type safety
+// Only use when: performance critical, interop with C, zero-copy operations
 package main
 
 import (
@@ -12,7 +12,7 @@ import (
 
 // === Struct Layout & Padding ===
 
-// BAD: padding waste — Go không tự reorder fields
+// BAD: padding waste — Go does not auto-reorder fields
 type BadLayout struct {
 	A bool    // 1 byte
 	// 7 bytes padding (align B to 8-byte boundary)
@@ -60,10 +60,10 @@ func inspectStruct(v any) []StructInfo {
 }
 
 // === Zero-copy string ↔ []byte (Go 1.20+) ===
-// unsafe.String và unsafe.Slice cho phép chuyển đổi không copy
+// unsafe.String and unsafe.Slice allow conversion without copying
 
 func stringToBytes(s string) []byte {
-	// Go 1.20+: unsafe.StringData trả về pointer tới underlying bytes
+	// Go 1.20+: unsafe.StringData returns pointer to underlying bytes
 	if len(s) == 0 {
 		return nil
 	}
@@ -71,7 +71,7 @@ func stringToBytes(s string) []byte {
 }
 
 func bytesToString(b []byte) string {
-	// Go 1.20+: unsafe.String tạo string từ pointer + length
+	// Go 1.20+: unsafe.String creates a string from pointer + length
 	if len(b) == 0 {
 		return ""
 	}
@@ -79,7 +79,7 @@ func bytesToString(b []byte) string {
 }
 
 // === unsafe.Pointer type reinterpretation ===
-// NGUY HIỂM: chỉ làm điều này nếu hiểu rõ memory layout
+// DANGEROUS: only do this if you fully understand the memory layout
 
 func float64Bits(f float64) uint64 {
 	// Reinterpret float64 as uint64 (bit manipulation)
@@ -142,7 +142,7 @@ func main() {
 	fmt.Printf("  Original string: %q (len=%d bytes)\n", original, len(original))
 	fmt.Printf("  As bytes (first 5): %v\n", bytes[:5])
 
-	// CẢNH BÁO: string là immutable — không modify bytes!
+	// WARNING: string is immutable — do not modify bytes!
 	// bytes[0] = 'h'  // ← undefined behavior / segfault!
 
 	bSlice := []byte("mutable bytes")

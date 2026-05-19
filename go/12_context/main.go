@@ -1,5 +1,5 @@
-// Bài 12: Context — quản lý cancellation, deadline, và values
-// Chạy: go run .
+// Lesson 12: Context — managing cancellation, deadlines, and values
+// Run: go run .
 package main
 
 import (
@@ -8,8 +8,8 @@ import (
 	"time"
 )
 
-// contextKey là kiểu riêng để tránh key collision giữa packages
-// NGUYÊN TẮC: Không bao giờ dùng built-in types (string, int) làm context key
+// contextKey is a dedicated type to avoid key collisions between packages
+// RULE: Never use built-in types (string, int) as context keys
 type contextKey string
 
 const (
@@ -39,13 +39,13 @@ func callExternalAPI(ctx context.Context, endpoint string) (string, error) {
 	}
 }
 
-// handler mô phỏng HTTP request handler
+// handler simulates an HTTP request handler
 func handler(ctx context.Context, userID int) error {
-	// Extract values từ context
+	// Extract values from context
 	reqID, _ := ctx.Value(requestIDKey).(string)
 	fmt.Printf("  [%s] Handling request for userID=%d\n", reqID, userID)
 
-	// Truyền context xuống các layers
+	// Pass context down to all layers
 	user, err := fetchUserFromDB(ctx, userID)
 	if err != nil {
 		return fmt.Errorf("handler: %w", err)
@@ -61,17 +61,17 @@ func handler(ctx context.Context, userID int) error {
 }
 
 func main() {
-	fmt.Println("=== 1. context.Background() và context.TODO() ===")
-	// Background: root context, không bao giờ cancel — dùng trong main, init, tests
+	fmt.Println("=== 1. context.Background() and context.TODO() ===")
+	// Background: root context, never cancelled — use in main, init, tests
 	bg := context.Background()
-	// TODO: placeholder khi chưa biết dùng context nào — để sau refactor
+	// TODO: placeholder when unsure which context to use — refactor later
 	todo := context.TODO()
 	fmt.Printf("  Background: %v\n", bg)
 	fmt.Printf("  TODO: %v\n", todo)
 
 	fmt.Println("\n=== 2. WithCancel — manual cancellation ===")
 	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel() // NGUYÊN TẮC: luôn defer cancel() để tránh goroutine leak
+	defer cancel() // RULE: always defer cancel() to avoid goroutine leak
 
 	go func() {
 		select {
@@ -86,8 +86,8 @@ func main() {
 	cancel() // signal goroutine to stop
 	time.Sleep(20 * time.Millisecond)
 
-	fmt.Println("\n=== 3. WithTimeout — auto cancel sau thời gian ===")
-	// Timeout: hủy sau duration
+	fmt.Println("\n=== 3. WithTimeout — auto cancel after a duration ===")
+	// Timeout: cancel after duration
 	ctx2, cancel2 := context.WithTimeout(context.Background(), 100*time.Millisecond)
 	defer cancel2()
 
@@ -96,19 +96,19 @@ func main() {
 		fmt.Printf("  handler error: %v\n", err)
 	}
 
-	fmt.Println("\n=== 4. WithTimeout — bị timeout ===")
-	// Context timeout ngắn hơn API call time
+	fmt.Println("\n=== 4. WithTimeout — timeout occurs ===")
+	// Context timeout shorter than API call time
 	ctx3, cancel3 := context.WithTimeout(context.Background(), 50*time.Millisecond)
 	defer cancel3()
 
-	// Thêm value vào context trước khi truyền
+	// Add value to context before passing it down
 	ctx3 = context.WithValue(ctx3, requestIDKey, "req-001")
 	err = handler(ctx3, 1)
 	if err != nil {
 		fmt.Printf("  handler timed out: %v\n", err)
 	}
 
-	fmt.Println("\n=== 5. WithDeadline — cancel tại thời điểm cụ thể ===")
+	fmt.Println("\n=== 5. WithDeadline — cancel at a specific time ===")
 	deadline := time.Now().Add(200 * time.Millisecond)
 	ctx4, cancel4 := context.WithDeadline(context.Background(), deadline)
 	defer cancel4()
@@ -121,12 +121,12 @@ func main() {
 		fmt.Println("  Timer expired first")
 	}
 
-	fmt.Println("\n=== 6. WithValue — truyền values qua context chain ===")
+	fmt.Println("\n=== 6. WithValue — pass values through context chain ===")
 	ctx5 := context.WithValue(context.Background(), userIDKey, 123)
 	ctx5 = context.WithValue(ctx5, requestIDKey, "req-abc-123")
 	ctx5 = context.WithValue(ctx5, traceIDKey, "trace-xyz-789")
 
-	// Extract values — phải type assert
+	// Extract values — must type assert
 	if uid, ok := ctx5.Value(userIDKey).(int); ok {
 		fmt.Printf("  userID: %d\n", uid)
 	}
@@ -137,11 +137,11 @@ func main() {
 		fmt.Printf("  traceID: %s\n", traceID)
 	}
 
-	// Value không tồn tại → nil
+	// Non-existent value → nil
 	missing := ctx5.Value("nonexistent")
 	fmt.Printf("  missing key: %v\n", missing)
 
-	fmt.Println("\n=== 7. Errors của Context ===")
+	fmt.Println("\n=== 7. Context Errors ===")
 	fmt.Printf("  context.Canceled: %v\n", context.Canceled)
 	fmt.Printf("  context.DeadlineExceeded: %v\n", context.DeadlineExceeded)
 

@@ -1,9 +1,9 @@
-// Bài 21: CGo — gọi code C từ Go
-// Chạy: go run .
-// Build static binary: CGO_ENABLED=0 go build .  (không cần C)
-// Build với CGo: go build .
+// Lesson 21: CGo — calling C code from Go
+// Run: go run .
+// Build static binary: CGO_ENABLED=0 go build .  (no C needed)
+// Build with CGo: go build .
 //
-// Điều kiện: cần C compiler (gcc hoặc clang)
+// Requirement: needs a C compiler (gcc or clang)
 // macOS: xcode-select --install
 // Linux: apt-get install build-essential
 package main
@@ -14,7 +14,7 @@ package main
 #include <string.h>
 #include <math.h>
 
-// Hàm C đơn giản
+// Simple C function
 int add(int a, int b) {
     return a + b;
 }
@@ -23,14 +23,14 @@ double square_root(double x) {
     return sqrt(x);
 }
 
-// Hàm nhận và trả về C string
+// Function that accepts and returns a C string
 char* greet(const char* name) {
     static char buf[256];
     snprintf(buf, sizeof(buf), "Hello, %s from C!", name);
     return buf;
 }
 
-// Struct trong C
+// Struct in C
 typedef struct {
     int x;
     int y;
@@ -49,7 +49,7 @@ double distance(Point a, Point b) {
     return sqrt(dx*dx + dy*dy);
 }
 */
-import "C" // QUAN TRỌNG: không có blank line giữa comment và import "C"!
+import "C" // IMPORTANT: no blank line between the comment block and import "C"!
 
 import (
 	"fmt"
@@ -59,18 +59,18 @@ import (
 func main() {
 	fmt.Println("=== 1. Gọi Hàm C Đơn Giản ===")
 
-	// Gọi C.add — tự động convert Go int → C int
+	// Call C.add — automatically converts Go int → C int
 	result := C.add(3, 4)
 	fmt.Printf("  C.add(3, 4) = %d\n", int(result))
 
-	// Gọi C.square_root với C.double
+	// Call C.square_root with C.double
 	sqrt := C.square_root(2.0)
 	fmt.Printf("  C.square_root(2.0) = %f\n", float64(sqrt))
 
 	fmt.Println("\n=== 2. Go String ↔ C String ===")
-	// QUAN TRỌNG: C.CString allocate memory — phải gọi C.free!
+	// IMPORTANT: C.CString allocates memory — must call C.free!
 	cName := C.CString("Gopher") // Go string → C char*
-	defer C.free(unsafe.Pointer(cName)) // PHẢI free để tránh memory leak
+	defer C.free(unsafe.Pointer(cName)) // MUST free to avoid memory leak
 
 	greeting := C.greet(cName)
 	// C.GoString: C char* → Go string (copy)

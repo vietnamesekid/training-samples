@@ -7,7 +7,7 @@ import (
 
 func demoChannels() {
 	fmt.Println("\n--- Unbuffered Channel (synchronous) ---")
-	// Unbuffered: gửi và nhận phải sẵn sàng cùng lúc (rendezvous)
+	// Unbuffered: sender and receiver must both be ready at the same time (rendezvous)
 	ch := make(chan string)
 	go func() {
 		ch <- "hello from goroutine"
@@ -16,38 +16,38 @@ func demoChannels() {
 	fmt.Printf("  Received: %q\n", msg)
 
 	fmt.Println("\n--- Buffered Channel (asynchronous) ---")
-	// Buffered: gửi không block nếu buffer chưa đầy
+	// Buffered: send does not block if buffer is not full
 	bch := make(chan int, 3)
 	bch <- 1
 	bch <- 2
 	bch <- 3
-	// bch <- 4  // ← BLOCK vì buffer đầy (không có ai nhận)
+	// bch <- 4  // ← BLOCKS because buffer is full (no receiver)
 	fmt.Printf("  len=%d, cap=%d\n", len(bch), cap(bch))
 	fmt.Printf("  Received: %d, %d, %d\n", <-bch, <-bch, <-bch)
 
-	fmt.Println("\n--- close() và range over channel ---")
+	fmt.Println("\n--- close() and range over channel ---")
 	jobs := make(chan int, 5)
 	go func() {
 		for i := range 5 {
 			jobs <- i + 1
 		}
-		close(jobs) // báo hiệu không có thêm values
+		close(jobs) // signal that no more values will be sent
 	}()
 
-	for j := range jobs { // range tự dừng khi channel closed VÀ empty
+	for j := range jobs { // range stops automatically when channel is closed AND empty
 		fmt.Printf("  job: %d\n", j)
 	}
 
-	// Kiểm tra closed channel với 2-value form
+	// Check closed channel with 2-value form
 	done := make(chan struct{})
 	close(done)
 	_, ok := <-done
 	fmt.Printf("  Receive from closed: ok=%t (false = closed)\n", ok)
 
 	fmt.Println("\n--- Directional Channels ---")
-	// chan<- T: chỉ gửi (send-only)
-	// <-chan T: chỉ nhận (receive-only)
-	// Dùng để enforce direction ở compile time
+	// chan<- T: send-only
+	// <-chan T: receive-only
+	// Used to enforce direction at compile time
 	ping := make(chan string, 1)
 	pong := make(chan string, 1)
 
@@ -69,7 +69,7 @@ func demoChannels() {
 		two <- "from two"
 	}()
 
-	// select chọn case nào ready trước
+	// select picks whichever case is ready first
 	for i := range 2 {
 		select {
 		case v := <-one:
@@ -79,7 +79,7 @@ func demoChannels() {
 		}
 	}
 
-	fmt.Println("\n--- select với timeout ---")
+	fmt.Println("\n--- select with timeout ---")
 	slow := make(chan int)
 	go func() {
 		time.Sleep(200 * time.Millisecond)
@@ -93,7 +93,7 @@ func demoChannels() {
 		fmt.Println("  Timeout! (50ms)")
 	}
 
-	fmt.Println("\n--- select với default (non-blocking) ---")
+	fmt.Println("\n--- select with default (non-blocking) ---")
 	ch2 := make(chan int, 1)
 	select {
 	case v := <-ch2:
@@ -110,7 +110,7 @@ func demoChannels() {
 	}
 
 	fmt.Println("\n--- Done channel pattern ---")
-	// Pattern phổ biến: done channel để signal goroutine dừng
+	// Common pattern: done channel to signal goroutine to stop
 	doneCh := make(chan struct{})
 	go func() {
 		for {
@@ -126,16 +126,16 @@ func demoChannels() {
 	}()
 
 	time.Sleep(50 * time.Millisecond)
-	close(doneCh) // broadcast: close channel wakes up ALL receivers
+	close(doneCh) // broadcast: closing channel wakes up ALL receivers
 	time.Sleep(20 * time.Millisecond)
 }
 
-// sender chỉ có thể GỬI vào ch (chan<-)
+// sender can only SEND to ch (chan<-)
 func sender(ch chan<- string) {
 	ch <- "ping"
 }
 
-// forwarder nhận từ in (<-chan) và gửi vào out (chan<-)
+// forwarder receives from in (<-chan) and sends to out (chan<-)
 func forwarder(in <-chan string, out chan<- string) {
 	msg := <-in
 	out <- msg + " → pong"

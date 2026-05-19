@@ -1,5 +1,5 @@
-// Package config — internal package, chỉ dùng trong module này
-// KHÔNG thể import từ module khác (Go enforce ở compile time)
+// Package config — internal package, only usable within this module
+// CANNOT be imported from another module (Go enforces this at compile time)
 package config
 
 import (
@@ -7,7 +7,7 @@ import (
 	"os"
 )
 
-// Config chứa cấu hình ứng dụng
+// Config holds the application configuration
 type Config struct {
 	Host     string
 	Port     int
@@ -17,12 +17,12 @@ type Config struct {
 	LogLevel string
 }
 
-// DatabaseURL trả về connection string
+// DatabaseURL returns the connection string
 func (c *Config) DatabaseURL() string {
 	return fmt.Sprintf("postgres://%s:%d/%s", c.DBHost, c.DBPort, c.DBName)
 }
 
-// Load đọc config từ environment variables với fallback defaults
+// Load reads config from environment variables with fallback defaults
 func Load() *Config {
 	return &Config{
 		Host:     getEnv("APP_HOST", "localhost"),

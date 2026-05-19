@@ -8,46 +8,46 @@ import (
 func demoControlFlow() {
 	fmt.Println("\n--- For Loops ---")
 
-	// Cách 1: C-style for loop
+	// Method 1: C-style for loop
 	for i := 0; i < 3; i++ {
 		fmt.Printf("  C-style: %d\n", i)
 	}
 
-	// Cách 2: while-style (chỉ có condition)
+	// Method 2: while-style (condition only)
 	n := 0
 	for n < 3 {
 		fmt.Printf("  while-style: %d\n", n)
 		n++
 	}
 
-	// Cách 3: range over integer (Go 1.22+)
+	// Method 3: range over integer (Go 1.22+)
 	for i := range 3 {
 		fmt.Printf("  range int: %d\n", i)
 	}
 
-	// Cách 4: range over slice
+	// Method 4: range over slice
 	nums := []int{10, 20, 30}
 	for i, v := range nums {
 		fmt.Printf("  range slice: index=%d, value=%d\n", i, v)
 	}
 
-	// Cách 5: range chỉ lấy index
+	// Method 5: range with index only
 	for i := range nums {
 		fmt.Printf("  range index only: %d\n", i)
 	}
 
-	// Cách 6: range over map (thứ tự ngẫu nhiên)
+	// Method 6: range over map (random order)
 	m := map[string]int{"a": 1, "b": 2}
 	for k, v := range m {
 		fmt.Printf("  range map: %s=%d\n", k, v)
 	}
 
-	// Cách 7: range over string (trả về rune)
+	// Method 7: range over string (returns runes)
 	for i, r := range "Go🎯" {
 		fmt.Printf("  range string: index=%d, rune=%c\n", i, r)
 	}
 
-	// Cách 8: infinite loop với break
+	// Method 8: infinite loop with break
 	count := 0
 	for {
 		if count >= 3 {
@@ -66,13 +66,13 @@ func demoControlFlow() {
 		fmt.Printf("    %d\n", i)
 	}
 
-	// Labeled break/continue — break/continue outer loop từ inner loop
+	// Labeled break/continue — break/continue an outer loop from an inner loop
 	fmt.Println("  Labeled break:")
 outer:
 	for i := range 3 {
 		for j := range 3 {
 			if i+j >= 3 {
-				break outer // break cả 2 vòng lặp
+				break outer // break both loops
 			}
 			fmt.Printf("    i=%d, j=%d\n", i, j)
 		}
@@ -91,7 +91,7 @@ outer:
 		fmt.Printf("  Ngày thường: %v\n", day)
 	}
 
-	// Switch không cần expression (như if-else chain)
+	// Switch without expression (like an if-else chain)
 	score := 85
 	switch {
 	case score >= 90:
@@ -104,7 +104,7 @@ outer:
 		fmt.Println("  Grade: F")
 	}
 
-	// Switch với initialization statement
+	// Switch with initialization statement
 	switch x := 42; {
 	case x > 100:
 		fmt.Println("  > 100")
@@ -132,7 +132,7 @@ outer:
 		}
 	}
 
-	// fallthrough — hiếm dùng, thực thi case tiếp theo
+	// fallthrough — rarely used, executes the next case
 	fmt.Println("  fallthrough:")
 	switch 1 {
 	case 1:
@@ -145,7 +145,7 @@ outer:
 	}
 
 	fmt.Println("\n--- if với initialization ---")
-	// if statement có thể có initialization trước condition
+	// if statement can have an initialization before the condition
 	if err := riskyOp(); err != nil {
 		fmt.Printf("  Error: %v\n", err)
 	} else {
@@ -153,13 +153,13 @@ outer:
 	}
 
 	fmt.Println("\n--- defer ---")
-	// defer: trì hoãn thực thi đến khi function return
-	// LIFO order: defer cuối cùng chạy trước
+	// defer: delays execution until the surrounding function returns
+	// LIFO order: the last defer runs first
 	demonstrateDefer()
 }
 
 func riskyOp() error {
-	return nil // thành công
+	return nil // success
 }
 
 func demonstrateDefer() {
@@ -169,19 +169,19 @@ func demonstrateDefer() {
 	defer fmt.Println("    defer 3 (chạy đầu tiên)")
 	fmt.Println("    main function body")
 
-	// GOTCHA: Argument của defer được evaluate ngay khi defer được gọi
+	// GOTCHA: Arguments to defer are evaluated immediately when defer is called
 	x := 10
 	defer fmt.Printf("    defer value of x: %d (evaluated tại thời điểm defer)\n", x)
 	x = 20
 	fmt.Printf("    current x: %d\n", x)
 
-	// Use case phổ biến: cleanup resources
+	// Common use case: cleanup resources
 	// f, _ := os.Open("file.txt")
-	// defer f.Close()  // ← đảm bảo luôn close dù function return ở đâu
+	// defer f.Close()  // ← ensures Close is always called regardless of where the function returns
 
-	// GOTCHA: defer trong loop tích lũy, không nên dùng trong loop lớn
+	// GOTCHA: defer in a loop accumulates — avoid using defer inside large loops
 	// for rows.Next() {
 	//     row := rows.Scan(...)
-	//     defer row.Close()  // ← TẤT CẢ defer chạy khi function return, không phải end of loop!
+	//     defer row.Close()  // ← ALL defers run when the function returns, not at the end of the loop!
 	// }
 }

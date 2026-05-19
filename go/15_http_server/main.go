@@ -1,5 +1,5 @@
-// Bài 15: HTTP Server — xây dựng web server với Go 1.22+ mux
-// Chạy: go run .
+// Lesson 15: HTTP Server — building a web server with Go 1.22+ mux
+// Run: go run .
 // Test: curl http://localhost:8080/users
 //       curl http://localhost:8080/users/1
 //       curl -X POST -H "Content-Type: application/json" -d '{"name":"Alice","email":"alice@example.com"}' http://localhost:8080/users
@@ -20,15 +20,15 @@ func main() {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 	slog.SetDefault(logger)
 
-	// Khởi tạo in-memory store
+	// Initialize in-memory store
 	store := NewUserStore()
 	store.Create(User{Name: "Alice", Email: "alice@example.com", Age: 30})
 	store.Create(User{Name: "Bob", Email: "bob@example.com", Age: 25})
 
-	// Tạo handler
+	// Create handler
 	h := NewUserHandler(store)
 
-	// Go 1.22+: mux hỗ trợ method + path pattern
+	// Go 1.22+: mux supports method + path pattern
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /users", h.ListUsers)
 	mux.HandleFunc("POST /users", h.CreateUser)
@@ -44,12 +44,12 @@ func main() {
 		CORSMiddleware,
 	)
 
-	// Server với proper timeouts — QUAN TRỌNG cho production
+	// Server with proper timeouts — IMPORTANT for production
 	srv := &http.Server{
 		Addr:         ":8080",
 		Handler:      handler,
-		ReadTimeout:  5 * time.Second,   // thời gian đọc request
-		WriteTimeout: 10 * time.Second,  // thời gian gửi response
+		ReadTimeout:  5 * time.Second,   // time to read request
+		WriteTimeout: 10 * time.Second,  // time to send response
 		IdleTimeout:  120 * time.Second, // keep-alive connections
 	}
 
@@ -63,13 +63,13 @@ func main() {
 		}
 	}()
 
-	// Chờ signal (Ctrl+C hoặc SIGTERM)
+	// Wait for signal (Ctrl+C or SIGTERM)
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
 	sig := <-quit
 	slog.Info("shutdown signal received", "signal", sig)
 
-	// Graceful shutdown: cho phép requests đang xử lý hoàn thành
+	// Graceful shutdown: allow in-flight requests to complete
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 

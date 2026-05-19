@@ -115,7 +115,7 @@ func (h *UserHandler) ListUsers(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
-	// Go 1.22+: r.PathValue() để lấy path parameter {id}
+	// Go 1.22+: r.PathValue() to get path parameter {id}
 	idStr := r.PathValue("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {

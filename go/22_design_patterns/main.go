@@ -1,5 +1,5 @@
-// Bài 22: Design Patterns trong Go
-// Chạy: go run .
+// Lesson 22: Design Patterns in Go
+// Run: go run .
 package main
 
 import "fmt"

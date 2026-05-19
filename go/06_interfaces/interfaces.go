@@ -9,7 +9,7 @@ import (
 
 // === Duck Typing — implicit interface implementation ===
 
-// Interface được implement implicitly — không cần khai báo "implements"
+// Interface is implemented implicitly — no need to declare "implements"
 type Shape interface {
 	Area() float64
 	Perimeter() float64
@@ -29,7 +29,7 @@ type Circle struct {
 func (c Circle) Area() float64      { return math.Pi * c.Radius * c.Radius }
 func (c Circle) Perimeter() float64 { return 2 * math.Pi * c.Radius }
 
-// Polymorphism qua interface
+// Polymorphism via interface
 func printShape(s Shape) {
 	fmt.Printf("  %T: area=%.2f, perimeter=%.2f\n", s, s.Area(), s.Perimeter())
 }
@@ -44,7 +44,7 @@ func totalArea(shapes []Shape) float64 {
 
 // === Interface Composition ===
 
-// io.Reader, io.Writer, io.Closer từ stdlib
+// io.Reader, io.Writer, io.Closer from stdlib
 type ReadWriter interface {
 	io.Reader
 	io.Writer
@@ -58,12 +58,12 @@ type Storage interface {
 	Name() string
 }
 
-// === fmt.Stringer — interface phổ biến nhất ===
+// === fmt.Stringer — the most commonly used interface ===
 type Color struct {
 	R, G, B uint8
 }
 
-// Implement fmt.Stringer: fmt tự gọi khi dùng %s, %v, Println
+// Implement fmt.Stringer: fmt calls this automatically with %s, %v, Println
 func (c Color) String() string {
 	return fmt.Sprintf("#%02X%02X%02X", c.R, c.G, c.B)
 }
@@ -79,18 +79,18 @@ func printAny(v any) {
 func demoTypeAssertion() {
 	var s Shape = Rectangle{Width: 3, Height: 4}
 
-	// Safe type assertion — sử dụng 2-value form
+	// Safe type assertion — use the 2-value form
 	if r, ok := s.(Rectangle); ok {
 		fmt.Printf("  Rectangle: %+v\n", r)
 	}
 
-	// Unsafe assertion — panic nếu sai type
+	// Unsafe assertion — panics if the type is wrong
 	defer func() {
 		if r := recover(); r != nil {
 			fmt.Printf("  Unsafe assertion panic: %v\n", r)
 		}
 	}()
-	c := s.(Circle) // ← PANIC vì s là Rectangle, không phải Circle
+	c := s.(Circle) // ← PANIC because s is Rectangle, not Circle
 	fmt.Println("  Circle:", c)
 }
 
@@ -109,7 +109,7 @@ func demoInterfaces() {
 	fmt.Println("\n--- fmt.Stringer ---")
 	colors := []Color{{255, 0, 0}, {0, 255, 0}, {0, 0, 255}}
 	for _, c := range colors {
-		fmt.Println(" ", c) // gọi c.String() tự động
+		fmt.Println(" ", c) // calls c.String() automatically
 	}
 
 	fmt.Println("\n--- Interface với io package ---")

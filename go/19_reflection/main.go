@@ -1,7 +1,7 @@
-// Bài 19: Reflection — kiểm tra và thao tác types tại runtime
-// Chạy: go run .
-// CẢNH BÁO: Reflection chậm hơn code thông thường ~10-100x
-// Chỉ dùng khi thật sự cần: frameworks, serialization, generic code
+// Lesson 19: Reflection — inspect and manipulate types at runtime
+// Run: go run .
+// WARNING: Reflection is ~10-100x slower than regular code
+// Only use when truly necessary: frameworks, serialization, generic code
 package main
 
 import (
@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-// === Struct dùng để demo ===
+// === Struct used for demo ===
 
 type Address struct {
 	Street string `json:"street" validate:"required"`
@@ -28,7 +28,7 @@ type User struct {
 	Address Address `json:"address"`
 }
 
-// === Mini Struct Validator sử dụng Reflection ===
+// === Mini Struct Validator using Reflection ===
 
 type ValidationError struct {
 	Field   string
@@ -39,12 +39,12 @@ func (e ValidationError) Error() string {
 	return fmt.Sprintf("field %s: %s", e.Field, e.Message)
 }
 
-// Validate kiểm tra struct fields theo `validate` tags
+// Validate checks struct fields according to `validate` tags
 func Validate(v any) []error {
 	val := reflect.ValueOf(v)
 	typ := reflect.TypeOf(v)
 
-	// Dereference pointer nếu cần
+	// Dereference pointer if needed
 	if val.Kind() == reflect.Ptr {
 		val = val.Elem()
 		typ = typ.Elem()
@@ -116,7 +116,7 @@ func applyRule(fieldName string, v reflect.Value, rule string) error {
 	return nil
 }
 
-// === Struct to Map (sử dụng reflection) ===
+// === Struct to Map (using reflection) ===
 
 func StructToMap(v any) map[string]any {
 	result := make(map[string]any)
@@ -134,7 +134,7 @@ func StructToMap(v any) map[string]any {
 		if jsonTag == "" {
 			jsonTag = field.Name
 		}
-		// Bỏ qua options như omitempty
+		// Strip options like omitempty
 		name := strings.Split(jsonTag, ",")[0]
 		if name == "-" {
 			continue
@@ -157,9 +157,9 @@ func main() {
 
 	fmt.Println("\n=== 2. Modify value through pointer ===")
 	x := 42
-	rv := reflect.ValueOf(&x).Elem() // Elem() để deref pointer
+	rv := reflect.ValueOf(&x).Elem() // Elem() to deref pointer
 	fmt.Printf("  Before: %d\n", x)
-	rv.SetInt(100) // có thể set vì ta có pointer
+	rv.SetInt(100) // can set because we have a pointer
 	fmt.Printf("  After SetInt(100): %d\n", x)
 
 	fmt.Println("\n=== 3. Inspect Struct Fields & Tags ===")

@@ -1,5 +1,5 @@
-// Bài 11: Sync Primitives — công cụ đồng bộ hóa
-// Chạy: go run .
+// Lesson 11: Sync Primitives — synchronization tools
+// Run: go run .
 package main
 
 import "fmt"

@@ -2,11 +2,11 @@ package main
 
 import "fmt"
 
-// === Nil Interface Gotcha — LỖI PHỔ BIẾN NHẤT VỚI INTERFACE ===
+// === Nil Interface Gotcha — THE MOST COMMON MISTAKE WITH INTERFACES ===
 //
-// Interface value thực ra là một pair: (type, value)
-// nil interface: (nil, nil) — cả type lẫn value đều nil
-// non-nil interface chứa nil pointer: (*MyError, nil) — type không nil!
+// An interface value is actually a pair: (type, value)
+// nil interface: (nil, nil) — both type and value are nil
+// non-nil interface holding a nil pointer: (*MyError, nil) — type is NOT nil!
 
 type MyError struct {
 	Message string
@@ -16,34 +16,34 @@ func (e *MyError) Error() string {
 	return e.Message
 }
 
-// BAD: function này có bug tinh tế
+// BAD: this function has a subtle bug
 func badGetError(fail bool) error {
 	var err *MyError // err = nil pointer
 	if fail {
 		err = &MyError{Message: "something failed"}
 	}
-	return err // NGUY HIỂM: trả về (*MyError, nil) — interface KHÔNG nil!
+	return err // DANGER: returns (*MyError, nil) — interface is NOT nil!
 }
 
-// GOOD: trả về nil interface thật sự
+// GOOD: returns a truly nil interface
 func goodGetError(fail bool) error {
 	if fail {
 		return &MyError{Message: "something failed"}
 	}
-	return nil // trả về (nil, nil) — interface thật sự nil
+	return nil // returns (nil, nil) — truly nil interface
 }
 
 func demoNilInterfaceGotcha() {
 	fmt.Println("--- BAD: (*MyError, nil) != nil interface ---")
 	err1 := badGetError(false)
 	fmt.Printf("  badGetError(false) == nil: %t\n", err1 == nil)
-	// ← IN FALSE! Vì err1 = (*MyError, nil), không phải (nil, nil)
+	// ← PRINTS FALSE! Because err1 = (*MyError, nil), not (nil, nil)
 	fmt.Printf("  Actual value: (%T, %v)\n", err1, err1)
 
 	fmt.Println("\n--- GOOD: nil interface thật sự ---")
 	err2 := goodGetError(false)
 	fmt.Printf("  goodGetError(false) == nil: %t\n", err2 == nil)
-	// ← IN TRUE! Vì err2 = (nil, nil)
+	// ← PRINTS TRUE! Because err2 = (nil, nil)
 
 	err3 := goodGetError(true)
 	fmt.Printf("  goodGetError(true) == nil: %t\n", err3 == nil)

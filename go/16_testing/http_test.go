@@ -8,16 +8,16 @@ import (
 	"testing"
 )
 
-// === HTTP Handler Testing với httptest ===
+// === HTTP Handler Testing with httptest ===
 // httptest.NewRecorder: capture response
-// httptest.NewRequest: tạo fake request
+// httptest.NewRequest: create a fake request
 
 func TestHealthHandler(t *testing.T) {
-	// Tạo request và recorder
+	// Create request and recorder
 	req := httptest.NewRequest(http.MethodGet, "/health", nil)
 	w := httptest.NewRecorder()
 
-	// Gọi handler trực tiếp — không cần start server
+	// Call handler directly — no need to start a server
 	healthHandler(w, req)
 
 	res := w.Result()

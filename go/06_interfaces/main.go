@@ -1,5 +1,5 @@
-// Bài 6: Interfaces — khái niệm quan trọng nhất trong Go
-// Chạy: go run .
+// Lesson 6: Interfaces — the most important concept in Go
+// Run: go run .
 package main
 
 import "fmt"

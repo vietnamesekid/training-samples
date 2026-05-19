@@ -1,5 +1,5 @@
-// Bài 3: Strings, Arrays, Slices, Maps — kiểu dữ liệu tập hợp cơ bản
-// Chạy: go run .
+// Lesson 3: Strings, Arrays, Slices, Maps — fundamental collection data types
+// Run: go run .
 package main
 
 import "fmt"

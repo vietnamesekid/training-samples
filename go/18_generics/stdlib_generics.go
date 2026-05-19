@@ -9,7 +9,7 @@ import (
 
 // === Stdlib Generic Packages (Go 1.21+) ===
 
-// Custom iterator dùng iter.Seq (Go 1.23+)
+// Custom iterator using iter.Seq (Go 1.23+)
 type Student struct {
 	Name string
 	GPA  float64
@@ -27,7 +27,7 @@ func ScholarshipStudents(students []Student) iter.Seq[Student] {
 	}
 }
 
-// iter.Seq2 — iterator với index
+// iter.Seq2 — iterator with index
 func Enumerate[T any](slice []T) iter.Seq2[int, T] {
 	return func(yield func(int, T) bool) {
 		for i, v := range slice {
@@ -88,7 +88,7 @@ func demoStdlibGenerics() {
 	fmt.Printf("  Max: %d\n", slices.Max(nums))
 	fmt.Printf("  Min: %d\n", slices.Min(nums))
 
-	// Compact: xóa duplicates liên tiếp (cần sort trước)
+	// Compact: remove consecutive duplicates (needs to be sorted first)
 	compact := slices.Compact(sorted)
 	fmt.Printf("  Compact: %v\n", compact)
 

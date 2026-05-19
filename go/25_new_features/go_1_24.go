@@ -8,8 +8,8 @@ import (
 
 func demoGo124() {
 	fmt.Println("\n--- 1. Generic Type Aliases (Go 1.24+) ---")
-	// Go 1.24 hoàn thiện generic type aliases
-	// type MySlice[T any] = []T  (= là alias, không phải new type)
+	// Go 1.24 completes generic type aliases
+	// type MySlice[T any] = []T  (= is alias, not a new type)
 
 	type Predicate[T any] = func(T) bool
 
@@ -39,8 +39,8 @@ func demoGo124() {
 	}
 
 	fmt.Println("\n--- 3. testing.B.Loop() (Go 1.24+) ---")
-	// b.Loop() là replacement cho for range b.N
-	// Ưu điểm: chính xác hơn, prevent compiler optimizations
+	// b.Loop() is a replacement for for range b.N
+	// Advantages: more accurate, prevents compiler optimizations
 	fmt.Println("  Old: for range b.N { ... }")
 	fmt.Println("  New: for b.Loop() { ... }")
 	fmt.Println()
@@ -53,7 +53,7 @@ func demoGo124() {
 
 	// Demo b.Loop() equivalent behavior
 	b := &testing.B{}
-	_ = b // chỉ để import
+	_ = b // import only
 
 	fmt.Println("\n--- 4. Swiss Tables Map (Go 1.24+) ---")
 	fmt.Println("  Go 1.24 rewrites map implementation with Swiss Tables")

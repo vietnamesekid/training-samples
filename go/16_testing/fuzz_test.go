@@ -6,19 +6,19 @@ import (
 )
 
 // === Fuzz Testing (Go 1.18+) ===
-// Fuzz test tự động generate inputs để tìm edge cases
-// Chạy: go test -fuzz=FuzzReverse -fuzztime=10s
-// Sau đó chạy regression: go test ./...  (corpus được save)
+// Fuzz tests automatically generate inputs to find edge cases
+// Run: go test -fuzz=FuzzReverse -fuzztime=10s
+// Then run regression: go test ./...  (corpus is saved)
 
-// FuzzReverse kiểm tra property: double reverse = identity
+// FuzzReverse checks the property: double reverse = identity
 func FuzzReverse(f *testing.F) {
-	// Seed corpus: các input ban đầu để bắt đầu fuzzing
+	// Seed corpus: initial inputs to start fuzzing from
 	f.Add("")
 	f.Add("hello")
 	f.Add("Go 🎯")
 	f.Add("racecar")
 
-	// Fuzz function nhận f *testing.F và input types
+	// Fuzz function receives f *testing.F and input types
 	f.Fuzz(func(t *testing.T, s string) {
 		// Property 1: double reverse = original
 		doubled := Reverse(Reverse(s))

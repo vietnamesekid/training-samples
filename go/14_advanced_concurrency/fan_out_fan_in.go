@@ -6,10 +6,10 @@ import (
 	"time"
 )
 
-// Fan-out: 1 input → nhiều workers xử lý song song
-// Fan-in: nhiều outputs → 1 channel
+// Fan-out: 1 input → multiple workers process in parallel
+// Fan-in: multiple outputs → 1 channel
 
-// fanOut phân phối jobs từ input sang n worker channels
+// fanOut distributes jobs from input across n worker channels
 func fanOut(input <-chan int, n int) []<-chan int {
 	outputs := make([]<-chan int, n)
 	for i := range n {
@@ -27,7 +27,7 @@ func fanOut(input <-chan int, n int) []<-chan int {
 	return outputs
 }
 
-// fanIn merge nhiều channels thành 1
+// fanIn merges multiple channels into one
 func fanIn(inputs ...<-chan int) <-chan int {
 	out := make(chan int)
 	var wg sync.WaitGroup
@@ -64,7 +64,7 @@ func demoFanOutFanIn() {
 	workers := fanOut(input, 3)
 	fmt.Printf("  Distributed across %d workers\n", len(workers))
 
-	// Fan-in kết quả
+	// Fan-in results
 	results := fanIn(workers...)
 
 	var all []int

@@ -1,5 +1,5 @@
-// Bài 25: Go 1.22 → 1.25 — Tính Năng Mới Quan Trọng
-// Chạy: go run .
+// Lesson 25: Go 1.22 → 1.25 — Important New Features
+// Run: go run .
 package main
 
 import "fmt"

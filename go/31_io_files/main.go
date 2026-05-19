@@ -1,6 +1,6 @@
-// Bài 31: I/O & File Operations
+// Lesson 31: I/O & File Operations
 // File I/O, bufio, io.Copy, embed.FS, os.Root (Go 1.24+), io.Reader/Writer composition
-// Chạy: go run .
+// Run: go run .
 package main
 
 import (
@@ -45,7 +45,7 @@ func main() {
 // 1. io.Reader & io.Writer
 // ============================================================
 
-// CountingReader đếm số bytes đã đọc
+// CountingReader counts the number of bytes read
 type CountingReader struct {
 	r     io.Reader
 	count int64
@@ -57,7 +57,7 @@ func (cr *CountingReader) Read(p []byte) (int, error) {
 	return n, err
 }
 
-// UpperCaseWriter chuyển tất cả thành uppercase khi write
+// UpperCaseWriter converts all bytes to uppercase on write
 type UpperCaseWriter struct {
 	w io.Writer
 }
@@ -88,7 +88,7 @@ func demoReaderWriter() {
 	fmt.Printf("  MultiWriter buf1: %s", buf1.String())
 	fmt.Printf("  MultiWriter buf2: %s", buf2.String())
 
-	// io.LimitReader — đọc tối đa N bytes
+	// io.LimitReader — read at most N bytes
 	src := strings.NewReader("This is a long string")
 	limited := io.LimitReader(src, 7)
 	data, _ = io.ReadAll(limited)
@@ -173,7 +173,7 @@ func demoFileOps() {
 // ============================================================
 
 func demoBufio() {
-	// bufio.Scanner — đọc line-by-line
+	// bufio.Scanner — read line-by-line
 	text := "first line\nsecond line\nthird line\n"
 	scanner := bufio.NewScanner(strings.NewReader(text))
 	fmt.Println("  Scanner line-by-line:")
@@ -184,20 +184,20 @@ func demoBufio() {
 		fmt.Printf("  scanner error: %v\n", err)
 	}
 
-	// bufio.Reader — đọc với buffer (tránh syscall mỗi byte)
+	// bufio.Reader — read with buffer (avoids syscall per byte)
 	reader := bufio.NewReader(strings.NewReader("Hello\nWorld"))
 	line, _ := reader.ReadString('\n')
 	fmt.Printf("  ReadString: %q\n", line)
 	rest, _ := io.ReadAll(reader)
 	fmt.Printf("  Rest: %q\n", rest)
 
-	// bufio.Writer — batch writes, giảm syscalls
+	// bufio.Writer — batch writes, reduces syscalls
 	var buf bytes.Buffer
 	bw := bufio.NewWriter(&buf)
 	for i := range 5 {
 		fmt.Fprintf(bw, "item %d\n", i)
 	}
-	bw.Flush() // QUAN TRỌNG: flush buffer vào underlying writer
+	bw.Flush() // IMPORTANT: flush buffer to underlying writer
 	fmt.Printf("  BufferedWriter: %d bytes flushed\n", buf.Len())
 
 	// Word scanner
@@ -227,8 +227,8 @@ func demoIOCopy() {
 	}
 	fmt.Printf("  io.Copy: copied %d bytes: %s\n", n, dst.String())
 
-	// io.TeeReader — đọc VÀ ghi sang writer khác đồng thời
-	// Dùng để: hash + save, log + process, etc.
+	// io.TeeReader — read AND write to another writer simultaneously
+	// Use cases: hash + save, log + process, etc.
 	var logger bytes.Buffer
 	tee := io.TeeReader(strings.NewReader("Data being processed"), &logger)
 
@@ -236,7 +236,7 @@ func demoIOCopy() {
 	fmt.Printf("  TeeReader processed: %s\n", processed)
 	fmt.Printf("  TeeReader logged: %s\n", logger.String())
 
-	// io.CopyN — copy tối đa N bytes
+	// io.CopyN — copy at most N bytes
 	src2 := strings.NewReader("Only first 5 chars")
 	var dst2 bytes.Buffer
 	io.CopyN(&dst2, src2, 5)
@@ -248,7 +248,7 @@ func demoIOCopy() {
 // ============================================================
 
 func demoEmbedFS() {
-	// Đọc file từ embedded FS
+	// Read file from embedded FS
 	data, err := embeddedAssets.ReadFile("assets/hello.txt")
 	if err != nil {
 		fmt.Printf("  ReadFile error: %v\n", err)
@@ -263,7 +263,7 @@ func demoEmbedFS() {
 		fmt.Printf("    %s\n", e.Name())
 	}
 
-	// Dùng embed.FS với fs.WalkDir
+	// Use embed.FS with fs.WalkDir
 	fs.WalkDir(embeddedAssets, "assets", func(path string, d fs.DirEntry, err error) error {
 		if err != nil || d.IsDir() {
 			return err
@@ -299,7 +299,7 @@ func demoTempFiles() {
 	tmpFile.Close()
 	fmt.Printf("  Temp file: %s\n", filepath.Base(tmpFile.Name()))
 
-	// Đọc lại
+	// Read back
 	data, _ := os.ReadFile(tmpFile.Name())
 	fmt.Printf("  Content: %s", data)
 
@@ -312,11 +312,11 @@ func demoTempFiles() {
 	defer os.RemoveAll(tmpDir)
 	fmt.Printf("  Temp dir: %s\n", filepath.Base(tmpDir))
 
-	// Tạo files trong temp dir
+	// Create files in temp dir
 	os.WriteFile(filepath.Join(tmpDir, "work.txt"), []byte("working"), 0644)
 	entries, _ := os.ReadDir(tmpDir)
 	fmt.Printf("  Files in temp dir: %d\n", len(entries))
 
-	// NGUYÊN TẮC: luôn defer os.Remove/RemoveAll ngay sau tạo temp file/dir
-	// Dùng t.TempDir() trong tests — tự cleanup sau test
+	// PRINCIPLE: always defer os.Remove/RemoveAll right after creating temp file/dir
+	// Use t.TempDir() in tests — auto-cleans up after test
 }

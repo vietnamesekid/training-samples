@@ -31,7 +31,7 @@ func demoGo123() {
 	}
 	fmt.Println()
 
-	// Enumerate với iter.Seq2
+	// Enumerate with iter.Seq2
 	words := []string{"go", "is", "great"}
 	withIndex := func(s []string) iter.Seq2[int, string] {
 		return func(yield func(int, string) bool) {

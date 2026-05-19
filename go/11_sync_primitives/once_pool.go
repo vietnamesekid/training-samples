@@ -6,7 +6,7 @@ import (
 	"sync"
 )
 
-// === sync.Once — chạy function đúng 1 lần, thread-safe ===
+// === sync.Once — run a function exactly once, thread-safe ===
 
 type Database struct {
 	Host string
@@ -18,8 +18,8 @@ var (
 	dbOnce     sync.Once
 )
 
-// GetDB — singleton pattern với sync.Once
-// Thread-safe: nếu 1000 goroutines gọi đồng thời, chỉ 1 lần init
+// GetDB — singleton pattern with sync.Once
+// Thread-safe: if 1000 goroutines call simultaneously, init only runs once
 func GetDB() *Database {
 	dbOnce.Do(func() {
 		fmt.Println("  [Once] Initializing database connection...")
@@ -28,15 +28,15 @@ func GetDB() *Database {
 	return dbInstance
 }
 
-// === sync.Pool — object pooling để giảm GC pressure ===
+// === sync.Pool — object pooling to reduce GC pressure ===
 //
-// Pool cho phép tái sử dụng objects thay vì allocate/GC liên tục
-// Dùng cho: bytes.Buffer, JSON encoders, temporary buffers
-// QUAN TRỌNG: Pool có thể bị GC clear bất kỳ lúc nào — không dùng cho state
+// Pool allows reusing objects instead of continuously allocating/GC-ing them
+// Use for: bytes.Buffer, JSON encoders, temporary buffers
+// IMPORTANT: Pool may be cleared by GC at any time — do not use for state
 
 var bufPool = sync.Pool{
 	New: func() any {
-		// Tạo buffer mới khi pool rỗng
+		// Create a new buffer when pool is empty
 		buf := &bytes.Buffer{}
 		buf.Grow(256) // pre-allocate 256 bytes
 		return buf
@@ -44,19 +44,19 @@ var bufPool = sync.Pool{
 }
 
 func processDataWithPool(data string) string {
-	// Lấy buffer từ pool (hoặc tạo mới nếu pool rỗng)
+	// Get buffer from pool (or create new one if pool is empty)
 	buf := bufPool.Get().(*bytes.Buffer)
-	buf.Reset() // QUAN TRỌNG: reset trước khi dùng
-	defer bufPool.Put(buf) // trả lại pool khi xong
+	buf.Reset() // IMPORTANT: reset before use
+	defer bufPool.Put(buf) // return to pool when done
 
 	buf.WriteString("processed: ")
 	buf.WriteString(data)
 	return buf.String()
 }
 
-// So sánh: không dùng pool
+// For comparison: without pool
 func processDataWithoutPool(data string) string {
-	var buf bytes.Buffer // allocate mới mỗi lần
+	var buf bytes.Buffer // allocate new each time
 	buf.WriteString("processed: ")
 	buf.WriteString(data)
 	return buf.String()
@@ -79,7 +79,7 @@ func demoOncePool() {
 	fmt.Println("  \"Initializing...\" chỉ in 1 lần dù 5 goroutines gọi GetDB()")
 
 	fmt.Println("\n--- sync.Pool ---")
-	// Dùng pool nhiều lần — buffer được tái sử dụng
+	// Use pool multiple times — buffer is reused
 	results := make([]string, 5)
 	for i := range 5 {
 		results[i] = processDataWithPool(fmt.Sprintf("item %d", i))

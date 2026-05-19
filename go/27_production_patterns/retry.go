@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-// RetryConfig cấu hình retry behavior
+// RetryConfig configures retry behavior
 type RetryConfig struct {
 	MaxAttempts int
 	BaseDelay   time.Duration
@@ -22,11 +22,11 @@ var DefaultRetryConfig = RetryConfig{
 	Multiplier:  2.0,
 }
 
-// IsRetryable xác định có nên retry không
+// IsRetryable determines whether to retry
 type IsRetryable func(err error) bool
 
-// RetryWithBackoff thực hiện fn với exponential backoff
-// delay: base, base*2, base*4, ... capped tại MaxDelay
+// RetryWithBackoff executes fn with exponential backoff
+// delay: base, base*2, base*4, ... capped at MaxDelay
 func RetryWithBackoff(ctx context.Context, cfg RetryConfig, retryable IsRetryable, fn func() error) error {
 	delay := cfg.BaseDelay
 
@@ -52,7 +52,7 @@ func RetryWithBackoff(ctx context.Context, cfg RetryConfig, retryable IsRetryabl
 		case <-time.After(delay):
 		}
 
-		// Exponential backoff với cap
+		// Exponential backoff with cap
 		delay = time.Duration(float64(delay) * cfg.Multiplier)
 		if delay > cfg.MaxDelay {
 			delay = cfg.MaxDelay
@@ -67,7 +67,7 @@ var ErrNotRetryable = errors.New("permanent error")
 func demoRetry() {
 	attempt := 0
 
-	// Simulate service phục hồi sau 3 lần thất bại
+	// Simulate a service that recovers after 3 failures
 	operation := func() error {
 		attempt++
 		if attempt < 3 {

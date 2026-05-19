@@ -1,7 +1,7 @@
-// Bài 29: Database Patterns trong Go
+// Lesson 29: Database Patterns in Go
 // database/sql pool, QueryContext, prepared statements, transactions, repository pattern
-// Chạy: go run .
-// Note: dùng in-memory SQLite simulation — không cần database thật
+// Run: go run .
+// Note: uses in-memory SQLite simulation — no real database needed
 package main
 
 import (
@@ -53,8 +53,8 @@ func explainDatabaseSQL() {
 }
 
 func showConnectionPool() {
-	// sql.Open() không tạo connection ngay — lazy
-	// db là connection pool, không phải single connection
+	// sql.Open() does not create a connection immediately — it's lazy
+	// db is a connection pool, not a single connection
 	fmt.Println("  Connection Pool setup:")
 	fmt.Println()
 
@@ -62,11 +62,11 @@ func showConnectionPool() {
   db, err := sql.Open("pgx", dsn)
   if err != nil { return err }
 
-  // Cấu hình pool — QUAN TRỌNG cho production
-  db.SetMaxOpenConns(25)          // max connections đang dùng
-  db.SetMaxIdleConns(10)          // max connections idle (cached)
-  db.SetConnMaxLifetime(5*time.Minute) // max tuổi thọ connection
-  db.SetConnMaxIdleTime(1*time.Minute) // max idle time trước khi đóng
+  // Pool configuration — IMPORTANT for production
+  db.SetMaxOpenConns(25)          // max connections in use
+  db.SetMaxIdleConns(10)          // max idle connections (cached)
+  db.SetConnMaxLifetime(5*time.Minute) // max connection lifetime
+  db.SetConnMaxIdleTime(1*time.Minute) // max idle time before closing
 
   // Verify connection
   ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -83,7 +83,7 @@ func showConnectionPool() {
 }
 
 // ============================================================
-// Simulated DB cho demo (không cần actual database driver)
+// Simulated DB for demo (no actual database driver needed)
 // ============================================================
 
 // MockDB simulates database/sql interface
@@ -178,7 +178,7 @@ func demoQueryPatterns() {
 		fmt.Printf("  Found: id=%d name=%s email=%s\n", user.ID, user.Name, user.Email)
 	}
 
-	// Query không tồn tại
+	// Query non-existent record
 	_, err = db.getUserByID(ctx, 999)
 	if errors.Is(err, errNoRows) {
 		fmt.Println("  id=999: not found (sql.ErrNoRows)")
@@ -197,7 +197,7 @@ func demoQueryPatterns() {
 	fmt.Println("  Prepared Statement pattern:")
 	fmt.Println(`  stmt, err := db.PrepareContext(ctx, "SELECT * FROM users WHERE id = $1")`)
 	fmt.Println(`  defer stmt.Close()`)
-	fmt.Println(`  // Reuse stmt nhiều lần — tránh SQL injection, tăng performance`)
+	fmt.Println(`  // Reuse stmt multiple times — prevents SQL injection, improves performance`)
 	fmt.Println(`  rows, err := stmt.QueryContext(ctx, userID)`)
 }
 
@@ -242,13 +242,13 @@ func (tx *MockTx) Rollback() error {
 	return nil
 }
 
-// transferWithTx minh họa transaction pattern với defer rollback
+// transferWithTx illustrates the transaction pattern with defer rollback
 func transferWithTx(ctx context.Context, db *MockDB, fromUser, toUser string, amount int) error {
 	tx, err := db.beginTx(ctx)
 	if err != nil {
 		return fmt.Errorf("begin tx: %w", err)
 	}
-	// NGUYÊN TẮC: luôn defer rollback — nếu commit đã chạy, rollback sẽ là no-op
+	// PRINCIPLE: always defer rollback — if commit already ran, rollback is a no-op
 	defer tx.Rollback()
 
 	fromID, err := tx.insertUser(ctx, fromUser, fromUser+"@example.com")
@@ -257,7 +257,7 @@ func transferWithTx(ctx context.Context, db *MockDB, fromUser, toUser string, am
 	}
 
 	if err := tx.deductCredits(ctx, fromID, amount); err != nil {
-		return fmt.Errorf("deduct credits: %w", err) // trigger defer Rollback
+		return fmt.Errorf("deduct credits: %w", err) // triggers defer Rollback
 	}
 
 	if err := tx.Commit(); err != nil {
@@ -273,7 +273,7 @@ func demoTransactions() {
 	db := newMockDB()
 	ctx := context.Background()
 
-	// Thành công
+	// Success
 	fmt.Println("  Successful transaction:")
 	if err := transferWithTx(ctx, db, "Dave", "Eve", 50); err != nil {
 		fmt.Printf("  ERROR: %v\n", err)
@@ -281,7 +281,7 @@ func demoTransactions() {
 		fmt.Println("  Transfer: OK")
 	}
 
-	// Thất bại (amount > 100)
+	// Failure (amount > 100)
 	fmt.Println()
 	fmt.Println("  Failed transaction (rollback):")
 	if err := transferWithTx(ctx, db, "Frank", "Grace", 200); err != nil {
@@ -314,7 +314,7 @@ type User struct {
 }
 
 // UserRepository interface — dependency inversion
-// Service layer phụ thuộc vào interface, không phải implementation cụ thể
+// Service layer depends on the interface, not the concrete implementation
 type UserRepository interface {
 	Create(ctx context.Context, name, email string) (*User, error)
 	FindByID(ctx context.Context, id int) (*User, error)
@@ -323,7 +323,7 @@ type UserRepository interface {
 	Delete(ctx context.Context, id int) error
 }
 
-// InMemoryUserRepo — dùng cho testing
+// InMemoryUserRepo — used for testing
 type InMemoryUserRepo struct {
 	db  *MockDB
 	idx map[string]int // email → id index
@@ -440,7 +440,7 @@ func contains(s, sub string) bool {
 func demoRepository() {
 	ctx := context.Background()
 
-	// Dùng InMemoryUserRepo cho demo (production sẽ dùng PostgresUserRepo)
+	// Use InMemoryUserRepo for demo (production would use PostgresUserRepo)
 	repo := NewInMemoryUserRepo()
 	svc := NewUserService(repo)
 
@@ -487,9 +487,9 @@ func demoRepository() {
 
 	fmt.Println()
 	fmt.Println("  Repository pattern benefits:")
-	fmt.Println("  - Service layer không biết gì về SQL/DB implementation")
-	fmt.Println("  - Test dùng InMemoryRepo, production dùng PostgresRepo")
-	fmt.Println("  - Dễ swap database (MongoDB, DynamoDB) mà không đổi business logic")
+	fmt.Println("  - Service layer knows nothing about SQL/DB implementation")
+	fmt.Println("  - Tests use InMemoryRepo, production uses PostgresRepo")
+	fmt.Println("  - Easy to swap database (MongoDB, DynamoDB) without changing business logic")
 }
 
 func showDatabaseMistakes() {
@@ -501,11 +501,11 @@ func showDatabaseMistakes() {
 		good string
 	}{
 		{
-			"rows, _ := db.Query(...) // lỗi bị ignore",
+			"rows, _ := db.Query(...) // error is ignored",
 			"rows, err := db.Query(...); if err != nil { ... }",
 		},
 		{
-			"defer rows.Close() // sau khi check err",
+			"defer rows.Close() // after checking err",
 			"rows, err := db.Query(...)\nif err != nil { return err }\ndefer rows.Close()",
 		},
 		{
@@ -513,7 +513,7 @@ func showDatabaseMistakes() {
 			`db.ExecContext(ctx, "SELECT * FROM users WHERE id=$1", id) // parameterized`,
 		},
 		{
-			"rows.Next() { rows.Scan(&u) } // không check rows.Err()",
+			"rows.Next() { rows.Scan(&u) } // not checking rows.Err()",
 			"rows.Next() { rows.Scan(&u) }\nif err := rows.Err(); err != nil { ... }",
 		},
 		{
@@ -521,7 +521,7 @@ func showDatabaseMistakes() {
 			"db.SetMaxOpenConns(25) // set reasonable limit",
 		},
 		{
-			"db.QueryRow(...) // không defer ctx cancel",
+			"db.QueryRow(...) // no ctx cancel deferred",
 			"ctx, cancel := context.WithTimeout(ctx, 5*time.Second)\ndefer cancel()\ndb.QueryRowContext(ctx, ...)",
 		},
 	}

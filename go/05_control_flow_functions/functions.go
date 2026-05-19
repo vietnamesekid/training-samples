@@ -8,7 +8,7 @@ import (
 
 // === Basic Function ===
 
-// Multiple return values — rất phổ biến trong Go
+// Multiple return values — very common in Go
 func divide(a, b float64) (float64, error) {
 	if b == 0 {
 		return 0, errors.New("division by zero")
@@ -16,11 +16,11 @@ func divide(a, b float64) (float64, error) {
 	return a / b, nil
 }
 
-// Named return values — dùng tiết kiệm, tránh lạm dụng
-// Hữu ích khi: return nhiều values cùng type, defer modify return values
+// Named return values — use sparingly, avoid overuse
+// Useful when: returning multiple values of the same type, defer modifies return values
 func minMax(nums []int) (min, max int) {
 	if len(nums) == 0 {
-		return // naked return: trả về zero values của min, max
+		return // naked return: returns zero values for min and max
 	}
 	min, max = nums[0], nums[0]
 	for _, n := range nums[1:] {
@@ -31,12 +31,12 @@ func minMax(nums []int) (min, max int) {
 			max = n
 		}
 	}
-	return // naked return: trả về min, max hiện tại
+	return // naked return: returns current min and max
 }
 
 // === Variadic Functions ===
 
-// ...T: nhận 0 hoặc nhiều arguments — bên trong là []T
+// ...T: accepts 0 or more arguments — internally treated as []T
 func sum(nums ...int) int {
 	total := 0
 	for _, n := range nums {
@@ -45,7 +45,7 @@ func sum(nums ...int) int {
 	return total
 }
 
-// Truyền slice vào variadic với ...
+// Pass a slice to a variadic function with ...
 func joinStrings(sep string, strs ...string) string {
 	result := ""
 	for i, s := range strs {
@@ -62,12 +62,12 @@ func joinStrings(sep string, strs ...string) string {
 // Function type
 type MathFunc func(float64, float64) float64
 
-// Higher-order function: nhận function làm argument
+// Higher-order function: accepts a function as an argument
 func apply(f MathFunc, a, b float64) float64 {
 	return f(a, b)
 }
 
-// Higher-order function: trả về function (function factory)
+// Higher-order function: returns a function (function factory)
 func multiplier(factor float64) func(float64) float64 {
 	return func(x float64) float64 {
 		return x * factor
@@ -76,16 +76,16 @@ func multiplier(factor float64) func(float64) float64 {
 
 // === Closures ===
 
-// Closure capture biến từ outer scope
+// Closure captures variables from the outer scope
 func makeCounter() func() int {
 	count := 0
 	return func() int {
-		count++ // capture và modify count
+		count++ // capture and modify count
 		return count
 	}
 }
 
-// Closure với memoization
+// Closure with memoization
 func makeMemoFib() func(int) int {
 	cache := map[int]int{0: 0, 1: 1}
 	var fib func(int) int
@@ -101,22 +101,22 @@ func makeMemoFib() func(int) int {
 
 // === panic & recover ===
 
-// safeDivide bọc function có thể panic, convert thành error
+// safeDivide wraps a function that may panic and converts it into an error
 func safeDivide(a, b int) (result int, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			err = fmt.Errorf("recovered from panic: %v", r)
 		}
 	}()
-	result = a / b // sẽ panic nếu b == 0
+	result = a / b // will panic if b == 0
 	return
 }
 
 // === init() function ===
 
-// init() chạy tự động trước main(), sau package-level vars
-// Một package có thể có nhiều init() functions
-// Thứ tự: package vars → init() → main()
+// init() runs automatically before main(), after package-level vars
+// A package can have multiple init() functions
+// Order: package vars → init() → main()
 var initMessage string
 
 func init() {
@@ -132,7 +132,7 @@ func factorial(n int) int {
 	return n * factorial(n-1)
 }
 
-// Fibonacci với tail recursion style (Go không optimize tail calls)
+// Fibonacci in tail recursion style (Go does not optimize tail calls)
 func fibonacci(n int) int {
 	if n <= 1 {
 		return n
@@ -178,7 +178,7 @@ func demoFunctions() {
 
 	fmt.Println("\n--- Closures ---")
 	counter1 := makeCounter()
-	counter2 := makeCounter() // counter riêng biệt
+	counter2 := makeCounter() // separate counter
 	fmt.Printf("counter1: %d, %d, %d\n", counter1(), counter1(), counter1())
 	fmt.Printf("counter2: %d (riêng biệt)\n", counter2())
 

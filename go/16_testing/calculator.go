@@ -1,9 +1,9 @@
-// Bài 16: Testing — viết tests đúng cách trong Go
-// Chạy tests: go test ./...
-// Chạy với verbose: go test -v ./...
-// Chạy benchmark: go test -bench=. -benchmem ./...
-// Chạy fuzz: go test -fuzz=FuzzReverse -fuzztime=10s ./...
-// Xem coverage: go test -cover ./...
+// Lesson 16: Testing — writing tests correctly in Go
+// Run tests: go test ./...
+// Run with verbose: go test -v ./...
+// Run benchmark: go test -bench=. -benchmem ./...
+// Run fuzz: go test -fuzz=FuzzReverse -fuzztime=10s ./...
+// View coverage: go test -cover ./...
 // Coverage HTML: go test -coverprofile=coverage.out ./... && go tool cover -html=coverage.out
 package main
 
@@ -12,7 +12,7 @@ import (
 	"fmt"
 )
 
-// Calculator — đây là code chúng ta muốn test
+// Calculator — this is the code we want to test
 type Calculator struct {
 	history []string
 }
@@ -58,7 +58,7 @@ func (c *Calculator) Clear() {
 	c.history = nil
 }
 
-// Reverse đảo ngược string — dùng để demo fuzz testing
+// Reverse reverses a string — used to demo fuzz testing
 func Reverse(s string) string {
 	runes := []rune(s)
 	for i, j := 0, len(runes)-1; i < j; i, j = i+1, j-1 {
@@ -67,7 +67,7 @@ func Reverse(s string) string {
 	return string(runes)
 }
 
-// main: entry point, nhưng code thú vị nằm trong *_test.go files
+// main: entry point, but the interesting code is in *_test.go files
 func main() {
 	c := NewCalculator()
 	fmt.Printf("3 + 4 = %.1f\n", c.Add(3, 4))

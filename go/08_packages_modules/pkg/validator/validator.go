@@ -1,5 +1,5 @@
-// Package validator — public package, có thể import từ bên ngoài
-// Đây là ví dụ về pkg/ — reusable, public-facing package
+// Package validator — public package, can be imported from outside
+// This is an example of a pkg/ — reusable, public-facing package
 package validator
 
 import (
@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-// Validator thực hiện validation
+// Validator performs validation
 type Validator struct {
 	rules []rule
 }
@@ -17,12 +17,12 @@ type rule struct {
 	check func(string) bool
 }
 
-// New tạo Validator mới
+// New creates a new Validator
 func New() *Validator {
 	return &Validator{}
 }
 
-// ValidateUser validate thông tin user, trả về danh sách lỗi
+// ValidateUser validates user information and returns a list of errors
 func (v *Validator) ValidateUser(name, email string, age int) []string {
 	var errs []string
 

@@ -1,5 +1,5 @@
-// Bài 5: Control Flow & Functions — luồng điều khiển và hàm
-// Chạy: go run .
+// Lesson 5: Control Flow & Functions — control structures and functions
+// Run: go run .
 package main
 
 import "fmt"

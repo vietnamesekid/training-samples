@@ -1,6 +1,6 @@
-// Bài 27: Production Patterns trong Go
+// Lesson 27: Production Patterns in Go
 // Circuit Breaker, Retry+Backoff, Graceful Shutdown, Health Checks, Config
-// Chạy: go run .
+// Run: go run .
 package main
 
 import (
@@ -29,9 +29,9 @@ func main() {
 	demoGracefulShutdown()
 }
 
-// demoGracefulShutdown minh họa graceful shutdown pattern với signal handling
+// demoGracefulShutdown illustrates the graceful shutdown pattern with signal handling
 func demoGracefulShutdown() {
-	// Pattern graceful shutdown:
+	// Graceful shutdown pattern:
 	// 1. Listen SIGINT/SIGTERM
 	// 2. Stop accepting new requests
 	// 3. Wait for in-flight requests to complete
@@ -47,7 +47,7 @@ func demoGracefulShutdown() {
 	fmt.Println("  <-quit")
 	fmt.Println("  server.Shutdown(ctx)")
 
-	// Trong demo này, không block — chỉ show pattern
+	// In this demo, we don't block — just show the pattern
 	signal.Stop(quit)
 	fmt.Println("  Graceful shutdown complete")
 }

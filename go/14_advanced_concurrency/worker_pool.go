@@ -10,8 +10,8 @@ import (
 	"time"
 )
 
-// Worker Pool — sản phẩm production-grade
-// Giải quyết vấn đề: giới hạn số goroutines đồng thời, tái sử dụng workers
+// Worker Pool — production-grade implementation
+// Solves: limiting the number of concurrent goroutines, reusing workers
 
 var (
 	ErrPoolClosed      = errors.New("worker pool: closed")
@@ -23,8 +23,8 @@ type Job func(ctx context.Context)
 
 type Pool struct {
 	queue  chan Job
-	stop   chan struct{}     // closed on Shutdown — broadcast to all workers
-	once   sync.Once        // đảm bảo close(stop) chỉ 1 lần
+	stop   chan struct{} // closed on Shutdown — broadcast to all workers
+	once   sync.Once     // ensures close(stop) is only called once
 	wg     sync.WaitGroup
 	ctx    context.Context
 	cancel context.CancelFunc
@@ -44,11 +44,12 @@ func NewPool(workers, capacity int, log *slog.Logger) *Pool {
 	for range workers {
 		p.wg.Add(1)
 		go p.runWorker()
+		// p.wg.Go(p.runWorker)
 	}
 	return p
 }
 
-// Submit block nếu queue đầy, trả về ErrPoolClosed nếu đã shutdown
+// Submit blocks if queue is full, returns ErrPoolClosed if already shut down
 func (p *Pool) Submit(job Job) error {
 	select {
 	case p.queue <- job:
@@ -58,7 +59,7 @@ func (p *Pool) Submit(job Job) error {
 	}
 }
 
-// TrySubmit non-blocking — trả về ErrQueueFull hoặc ErrPoolClosed ngay lập tức
+// TrySubmit non-blocking — returns ErrQueueFull or ErrPoolClosed immediately
 func (p *Pool) TrySubmit(job Job) error {
 	select {
 	case p.queue <- job:
@@ -70,7 +71,7 @@ func (p *Pool) TrySubmit(job Job) error {
 	}
 }
 
-// SubmitWithContext tôn trọng deadline của caller
+// SubmitWithContext respects the caller's deadline
 func (p *Pool) SubmitWithContext(ctx context.Context, job Job) error {
 	select {
 	case p.queue <- job:
@@ -82,10 +83,10 @@ func (p *Pool) SubmitWithContext(ctx context.Context, job Job) error {
 	}
 }
 
-// Shutdown dừng pool, chờ jobs đang chạy, timeout sau duration
+// Shutdown stops the pool, waits for running jobs, times out after duration
 func (p *Pool) Shutdown(timeout time.Duration) error {
 	p.once.Do(func() {
-		close(p.stop) // broadcast: không nhận jobs mới
+		close(p.stop) // broadcast: stop accepting new jobs
 	})
 
 	done := make(chan struct{})
@@ -98,7 +99,7 @@ func (p *Pool) Shutdown(timeout time.Duration) error {
 	case <-done:
 		return nil
 	case <-time.After(timeout):
-		p.cancel() // interrupt running jobs qua context
+		p.cancel() // interrupt running jobs via context
 		return ErrShutdownTimeout
 	}
 }
@@ -113,7 +114,7 @@ func (p *Pool) runWorker() {
 			}
 			p.safeExecute(job)
 		case <-p.stop:
-			// Drain remaining jobs trước khi exit
+			// Drain remaining jobs before exiting
 			for {
 				select {
 				case job := <-p.queue:
@@ -126,7 +127,7 @@ func (p *Pool) runWorker() {
 	}
 }
 
-// safeExecute bắt panic, không làm crash worker
+// safeExecute catches panics, prevents crashing the worker
 func (p *Pool) safeExecute(job Job) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -157,7 +158,7 @@ func demoWorkerPool() {
 		}
 	}
 
-	// Job có panic — pool phải survive
+	// Job with panic — pool must survive
 	pool.TrySubmit(func(_ context.Context) {
 		panic("intentional panic in job")
 	})

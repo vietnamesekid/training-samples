@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-// EmailSender interface — dễ mock trong tests
+// EmailSender interface — easy to mock in tests
 type EmailSender interface {
 	Send(ctx context.Context, to, subject, body string) error
 }
@@ -26,7 +26,7 @@ type User struct {
 	CreatedAt time.Time
 }
 
-// NotificationService gửi email khi có events
+// NotificationService sends email when events occur
 type NotificationService struct {
 	store  UserStore
 	mailer EmailSender

@@ -1,7 +1,7 @@
-// Bài 33: Advanced Testing Patterns
+// Lesson 33: Advanced Testing Patterns
 // Hand-written mocks, golden files, t.TempDir, t.Cleanup, integration build tags
-// Chạy tests: go test ./... -v
-// Chạy với race detector: go test -race ./...
+// Run tests: go test ./... -v
+// Run with race detector: go test -race ./...
 package main
 
 import "fmt"

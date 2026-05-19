@@ -1,6 +1,6 @@
-// Bài 26: 14 Common Mistakes trong Go
-// Các lỗi phổ biến nhất và cách sửa
-// Chạy: go run .
+// Lesson 26: 14 Common Mistakes in Go
+// The most frequent mistakes and how to fix them
+// Run: go run .
 package main
 
 import (
@@ -36,34 +36,34 @@ func main() {
 func mistake1_goroutineLeak() {
 	fmt.Println("\n--- Mistake 1: Goroutine Leak ---")
 
-	// BAD: goroutine bị block mãi mãi nếu không có consumer
+	// BAD: goroutine blocks forever if there is no consumer
 	badLeak := func() chan int {
 		ch := make(chan int)
 		go func() {
-			ch <- 42 // nếu caller bỏ qua channel → goroutine leak mãi mãi
+			ch <- 42 // if caller ignores channel → goroutine leaks forever
 		}()
 		return ch
 	}
 
 	ch := badLeak()
-	val := <-ch // nếu quên dòng này → goroutine leak
+	val := <-ch // if this line is forgotten → goroutine leak
 	fmt.Printf("  BAD pattern (but consumed correctly): %d\n", val)
 
-	// GOOD: dùng buffered channel hoặc done channel để cancel
+	// GOOD: use buffered channel or done channel to cancel
 	done := make(chan struct{})
-	results := make(chan int, 1) // buffered: goroutine không bị block
+	results := make(chan int, 1) // buffered: goroutine won't block
 
 	go func() {
 		select {
 		case results <- 42:
-		case <-done: // goroutine có thể thoát khi cần
+		case <-done: // goroutine can exit when needed
 		}
 	}()
 
-	close(done) // signal goroutine thoát
-	fmt.Println("  GOOD: goroutine có done channel để cancel")
+	close(done) // signal goroutine to exit
+	fmt.Println("  GOOD: goroutine has a done channel to cancel")
 
-	// NGUYÊN TẮC: mọi goroutine cần có cách thoát (done channel / context.Done)
+	// PRINCIPLE: every goroutine needs a way to exit (done channel / context.Done)
 }
 
 // ============================================================
@@ -74,7 +74,7 @@ type MyError struct{ msg string }
 
 func (e *MyError) Error() string { return e.msg }
 
-// BAD: trả về *MyError qua interface error — nil check sẽ FAIL!
+// BAD: returning *MyError through error interface — nil check will FAIL!
 func badGetError(fail bool) error {
 	var err *MyError // nil pointer
 	if fail {
@@ -84,36 +84,36 @@ func badGetError(fail bool) error {
 	return err
 }
 
-// GOOD: trả về nil trực tiếp khi không có lỗi
+// GOOD: return nil directly when there is no error
 func goodGetError(fail bool) error {
 	if fail {
 		return &MyError{"something went wrong"}
 	}
-	return nil // nil interface — check đúng
+	return nil // nil interface — check works correctly
 }
 
 func mistake2_nilInterfaceComparison() {
 	fmt.Println("\n--- Mistake 2: Nil Interface Comparison ---")
 
 	err := badGetError(false)
-	// err có type *MyError nhưng value nil → interface không nil!
+	// err has type *MyError but nil value → interface is not nil!
 	fmt.Printf("  badGetError(false) == nil: %v (sai! dù không có lỗi)\n", err == nil)
 
 	err2 := goodGetError(false)
 	fmt.Printf("  goodGetError(false) == nil: %v (đúng)\n", err2 == nil)
 
-	// NGUYÊN TẮC: không return concrete nil pointer qua interface
+	// PRINCIPLE: do not return a concrete nil pointer through an interface
 }
 
 // ============================================================
 // Mistake 3: Mutex Copy
 // ============================================================
 
-// BAD pattern (go vet sẽ báo: "passes lock by value: contains sync.Mutex"):
-// func (c BadCounter) BadIncrement() {  // value receiver → copy mutex!
+// BAD pattern (go vet will report: "passes lock by value: contains sync.Mutex"):
+// func (c BadCounter) BadIncrement() {  // value receiver → copies mutex!
 //     c.mu.Lock()
 //     defer c.mu.Unlock()
-//     c.count++  // thay đổi trên bản copy, original không bị ảnh hưởng
+//     c.count++  // changes are on the copy, original is unaffected
 // }
 
 type GoodCounter struct {
@@ -145,8 +145,8 @@ func mistake3_mutexCopy() {
 	good.Increment()
 	fmt.Printf("  GOOD: count = %d\n", good.Value())
 
-	// NGUYÊN TẮC: struct có Mutex → luôn dùng pointer receiver
-	// go vet cảnh báo: "assignment copies lock value"
+	// PRINCIPLE: struct with Mutex → always use pointer receiver
+	// go vet warns: "assignment copies lock value"
 }
 
 // ============================================================
@@ -156,7 +156,7 @@ func mistake3_mutexCopy() {
 func mistake4_concurrentMapWrite() {
 	fmt.Println("\n--- Mistake 4: Concurrent Map Write ---")
 
-	// BAD: concurrent write vào map thông thường → panic!
+	// BAD: concurrent write to a regular map → panic!
 	// var m = map[string]int{}
 	// for i := 0; i < 100; i++ {
 	//     go func(i int) { m[fmt.Sprintf("key%d", i)] = i }(i) // PANIC!
@@ -202,15 +202,15 @@ func mistake4_concurrentMapWrite() {
 func mistake5_loopVariableCapture() {
 	fmt.Println("\n--- Mistake 5: Loop Variable Capture ---")
 
-	// BAD pattern (trước Go 1.22):
+	// BAD pattern (before Go 1.22):
 	// for i := 0; i < 3; i++ {
-	//     go func() { fmt.Println(i) }() // in 3,3,3 — tất cả capture cùng biến i
+	//     go func() { fmt.Println(i) }() // prints 3,3,3 — all capture the same variable i
 	// }
 
 	var wg sync.WaitGroup
 	results := make([]int, 3)
 
-	// Cách đúng cũ (Go < 1.22): truyền qua parameter
+	// Old correct approach (Go < 1.22): pass through parameter
 	for i := 0; i < 3; i++ {
 		wg.Add(1)
 		go func(idx int) {
@@ -221,13 +221,13 @@ func mistake5_loopVariableCapture() {
 	wg.Wait()
 	fmt.Printf("  Correct capture (param copy): %v\n", results)
 
-	// Go 1.22+: loop variable per-iteration, range cũng đúng
+	// Go 1.22+: loop variable per-iteration, range also works correctly
 	results2 := make([]int, 3)
 	for i := range 3 {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			results2[i] = i * i // Go 1.22+: i là per-iteration
+			results2[i] = i * i // Go 1.22+: i is per-iteration
 		}()
 	}
 	wg.Wait()
@@ -243,13 +243,13 @@ func mistake6_deferInLoop() {
 
 	files := []string{"a.txt", "b.txt", "c.txt"}
 
-	// BAD: defer trong loop chạy khi function return, không phải cuối iteration
+	// BAD: defer in loop runs when the function returns, not at the end of each iteration
 	// for _, f := range files {
-	//     open(f) → defer close(f) // tất cả close chạy cùng lúc khi func return!
+	//     open(f) → defer close(f) // all closes run at once when func returns!
 	// }
 	fmt.Println("  BAD: defer trong loop → tất cả resource đóng cùng lúc khi func return")
 
-	// GOOD: wrap trong anonymous function
+	// GOOD: wrap in anonymous function
 	for _, f := range files {
 		func(name string) {
 			// open(name)
@@ -266,13 +266,13 @@ func mistake6_deferInLoop() {
 func mistake7_sliceHeaderCopy() {
 	fmt.Println("\n--- Mistake 7: Slice Header Copy ---")
 
-	// BAD: function nhận slice by value, append bên trong không thay đổi caller
+	// BAD: function receives slice by value, append inside doesn't affect caller
 	badAppend := func(s []int, val int) {
-		s = append(s, val) // s là bản copy header, caller không thấy
+		s = append(s, val) // s is a copy of the header, caller won't see it
 		_ = s
 	}
 
-	// GOOD option 1: trả về slice mới
+	// GOOD option 1: return new slice
 	goodAppend := func(s []int, val int) []int {
 		return append(s, val)
 	}
@@ -304,11 +304,11 @@ func riskyOperation() (int, error) {
 func mistake8_ignoreError() {
 	fmt.Println("\n--- Mistake 8: Ignoring Errors ---")
 
-	// BAD: bỏ qua error
-	val, _ := riskyOperation() // lỗi bị nuốt mất
+	// BAD: ignoring error
+	val, _ := riskyOperation() // error is silently swallowed
 	fmt.Printf("  BAD: val=%d, error silently ignored\n", val)
 
-	// GOOD: luôn handle error
+	// GOOD: always handle error
 	val2, err := riskyOperation()
 	if err != nil {
 		fmt.Printf("  GOOD: handled error: %v\n", err)
@@ -316,8 +316,8 @@ func mistake8_ignoreError() {
 		fmt.Printf("  GOOD: val=%d\n", val2)
 	}
 
-	// NGUYÊN TẮC: chỉ dùng _ khi thực sự chắc chắn không cần error
-	// golangci-lint errcheck sẽ cảnh báo unhandled errors
+	// PRINCIPLE: only use _ when you are truly certain the error is unneeded
+	// golangci-lint errcheck will warn about unhandled errors
 }
 
 // ============================================================
@@ -329,7 +329,7 @@ func mistake9_stringConcatInLoop() {
 
 	n := 100
 
-	// BAD: O(n²) allocations — mỗi += tạo string mới
+	// BAD: O(n²) allocations — each += creates a new string
 	badResult := ""
 	for i := range n {
 		badResult += fmt.Sprintf("%d,", i)
@@ -346,7 +346,7 @@ func mistake9_stringConcatInLoop() {
 	fmt.Printf("  BAD concat len: %d (O(n²) allocs)\n", len(badResult))
 	fmt.Printf("  GOOD Builder len: %d (O(n) allocs)\n", len(goodResult))
 
-	// NGUYÊN TẮC: dùng strings.Builder hoặc []byte khi concat nhiều lần
+	// PRINCIPLE: use strings.Builder or []byte when concatenating many times
 }
 
 // ============================================================
@@ -369,7 +369,7 @@ func (d StrData) Process() string { return fmt.Sprintf("str: %s", d.val) }
 func mistake10_emptyInterfaceType() {
 	fmt.Println("\n--- Mistake 10: Empty Interface Overuse ---")
 
-	// BAD: dùng any thay vì typed interface
+	// BAD: use any instead of a typed interface
 	badProcess := func(data any) string {
 		switch v := data.(type) {
 		case int:
@@ -401,19 +401,19 @@ func mistake11_timeFormat() {
 
 	now := time.Now()
 
-	// BAD: dùng format string kiểu Python/Java không hoạt động trong Go
-	// now.Format("yyyy-MM-dd") → sai hoàn toàn!
-	// now.Format("YYYY-MM-DD") → sai!
+	// BAD: using Python/Java-style format strings doesn't work in Go
+	// now.Format("yyyy-MM-dd") → completely wrong!
+	// now.Format("YYYY-MM-DD") → wrong!
 	fmt.Println("  BAD: Format(\"yyyy-MM-dd\") → Go không dùng pattern letters!")
 
-	// GOOD: Go dùng reference time: Mon Jan 2 15:04:05 MST 2006
+	// GOOD: Go uses reference time: Mon Jan 2 15:04:05 MST 2006
 	fmt.Printf("  GOOD: %s\n", now.Format("2006-01-02 15:04:05"))
 	fmt.Printf("  Date only: %s\n", now.Format("2006-01-02"))
 	fmt.Printf("  Time only: %s\n", now.Format("15:04:05"))
 	fmt.Printf("  RFC3339: %s\n", now.Format(time.RFC3339))
 	fmt.Printf("  Custom: %s\n", now.Format("02/01/2006"))
 
-	// NGUYÊN TẮC: reference time = January 2, 15:04:05, 2006, UTC-7
+	// PRINCIPLE: reference time = January 2, 15:04:05, 2006, UTC-7
 	// 2006=year, 01=month, 02=day, 15=hour(24h), 04=minute, 05=second
 }
 
@@ -426,39 +426,39 @@ func mistake12_rangeMapOrder() {
 
 	m := map[string]int{"c": 3, "a": 1, "b": 2}
 
-	// BAD: assume map iteration order là fixed
+	// BAD: assuming map iteration order is fixed
 	fmt.Print("  Map iteration (random, do not rely on order): ")
 	for k, v := range m {
 		fmt.Printf("%s=%d ", k, v)
 	}
 	fmt.Println()
 
-	// GOOD: dùng slice + sort nếu cần thứ tự xác định
+	// GOOD: use slice + sort if a deterministic order is needed
 	keys := make([]string, 0, len(m))
 	for k := range m {
 		keys = append(keys, k)
 	}
-	// sort.Strings(keys) — cần để đảm bảo thứ tự
+	// sort.Strings(keys) — needed to guarantee order
 	fmt.Printf("  GOOD: collect keys first: %v\n", keys)
 	fmt.Println("  GOOD: then sort.Strings(keys) for deterministic order")
 
-	// NGUYÊN TẮC: Go randomize map iteration intentionally
-	// để tránh code depend on implementation-defined behavior
+	// PRINCIPLE: Go intentionally randomizes map iteration
+	// to prevent code from depending on implementation-defined behavior
 }
 
 // ============================================================
 // Mistake 13: init() Side Effects
 // ============================================================
 
-// BAD: init() với side effects không rõ ràng
+// BAD: init() with unclear side effects
 // func init() {
 //     db, _ = sql.Open("postgres", os.Getenv("DATABASE_URL")) // error ignored!
-//     globalConfig = loadConfig() // panic nếu file thiếu
+//     globalConfig = loadConfig() // panic if file is missing
 // }
 
-// GOOD: explicit initialization, testable và có error handling
+// GOOD: explicit initialization, testable and with error handling
 func initializeApp() error {
-	// setup database, config, etc. với proper error handling
+	// setup database, config, etc. with proper error handling
 	return nil
 }
 
@@ -482,9 +482,9 @@ func mistake13_initFunctionSideEffects() {
 func mistake14_goroutineWithoutWait() {
 	fmt.Println("\n--- Mistake 14: Goroutine without Synchronization ---")
 
-	// BAD: main thoát trước khi goroutines hoàn thành
+	// BAD: main exits before goroutines finish
 	// go func() { fmt.Println("may never print!") }()
-	// main returns → goroutine bị kill
+	// main returns → goroutine is killed
 	fmt.Println("  BAD: goroutine started without WaitGroup/channel → may not complete")
 
 	// GOOD: WaitGroup
@@ -498,8 +498,8 @@ func mistake14_goroutineWithoutWait() {
 			results[idx] = fmt.Sprintf("result-%d", idx)
 		}(i)
 	}
-	wg.Wait() // đảm bảo tất cả goroutines xong trước khi dùng results
+	wg.Wait() // ensure all goroutines finish before using results
 	fmt.Printf("  GOOD: all goroutines done: %v\n", results)
 
-	// NGUYÊN TẮC: luôn sync với goroutines qua WaitGroup, channel, hoặc context
+	// PRINCIPLE: always synchronize with goroutines via WaitGroup, channel, or context
 }

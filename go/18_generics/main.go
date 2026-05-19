@@ -1,5 +1,5 @@
-// Bài 18: Generics — type parameters trong Go 1.18+
-// Chạy: go run .
+// Lesson 18: Generics — type parameters in Go 1.18+
+// Run: go run .
 package main
 
 import "fmt"

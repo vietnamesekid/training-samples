@@ -1,7 +1,7 @@
-// Bài 28: Microservices & gRPC trong Go
-// Giải thích concepts, patterns, và workflow — không cần protoc để chạy demo
-// Để chạy full gRPC: xem README trong folder này
-// Chạy: go run .
+// Lesson 28: Microservices & gRPC in Go
+// Explains concepts, patterns, and workflow — no need for protoc to run the demo
+// To run full gRPC: see README in this folder
+// Run: go run .
 package main
 
 import (
@@ -46,20 +46,20 @@ func explainGRPC() {
 	fmt.Println("  gRPC = Google Remote Procedure Call")
 	fmt.Println("  - Protocol: HTTP/2 (multiplexing, bidirectional streaming)")
 	fmt.Println("  - Serialization: Protocol Buffers (protobuf) — smaller, faster than JSON")
-	fmt.Println("  - Code generation: protoc tự generate client + server stubs")
+	fmt.Println("  - Code generation: protoc auto-generates client + server stubs")
 	fmt.Println()
 	fmt.Println("  Streaming types:")
-	fmt.Println("  - Unary: client gửi 1 request, server trả 1 response (như HTTP)")
-	fmt.Println("  - Server streaming: server trả nhiều responses")
-	fmt.Println("  - Client streaming: client gửi nhiều requests")
-	fmt.Println("  - Bidirectional: cả hai sides đều stream")
+	fmt.Println("  - Unary: client sends 1 request, server returns 1 response (like HTTP)")
+	fmt.Println("  - Server streaming: server returns multiple responses")
+	fmt.Println("  - Client streaming: client sends multiple requests")
+	fmt.Println("  - Bidirectional: both sides stream")
 	fmt.Println()
-	fmt.Println("  Khi nào dùng gRPC thay REST:")
+	fmt.Println("  When to use gRPC instead of REST:")
 	fmt.Println("  ✓ Internal service-to-service communication")
-	fmt.Println("  ✓ Cần strong typing và contract (proto file = API contract)")
+	fmt.Println("  ✓ Need strong typing and contract (proto file = API contract)")
 	fmt.Println("  ✓ High throughput, low latency")
 	fmt.Println("  ✓ Streaming data")
-	fmt.Println("  ✗ Public APIs (browser support hạn chế)")
+	fmt.Println("  ✗ Public APIs (limited browser support)")
 	fmt.Println("  ✗ Human-readable debugging")
 }
 
@@ -74,10 +74,10 @@ func showProtoDefinition() {
     // Unary RPC
     rpc GetUser(GetUserRequest) returns (UserResponse);
 
-    // Server-side streaming: trả về nhiều users
+    // Server-side streaming: returns multiple users
     rpc ListUsers(ListUsersRequest) returns (stream UserResponse);
 
-    // Client-side streaming: upload nhiều users
+    // Client-side streaming: upload multiple users
     rpc BulkCreateUsers(stream CreateUserRequest) returns (BulkCreateResponse);
 
     // Bidirectional streaming
@@ -106,7 +106,7 @@ func showProtoDefinition() {
   }`
 	fmt.Println(proto)
 	fmt.Println()
-	fmt.Println("  Để generate Go code từ proto:")
+	fmt.Println("  To generate Go code from proto:")
 	fmt.Println("  $ brew install protobuf")
 	fmt.Println("  $ go install google.golang.org/protobuf/cmd/protoc-gen-go@latest")
 	fmt.Println("  $ go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest")
@@ -128,7 +128,7 @@ func showServerPattern() {
   )
 
   type userServer struct {
-      pb.UnimplementedUserServiceServer // embed để forward-compatible
+      pb.UnimplementedUserServiceServer // embed for forward-compatibility
       store UserStore
   }
 
@@ -136,7 +136,7 @@ func showServerPattern() {
   func (s *userServer) GetUser(ctx context.Context, req *pb.GetUserRequest) (*pb.UserResponse, error) {
       user, err := s.store.FindByID(ctx, req.UserId)
       if err != nil {
-          // Map lỗi domain sang gRPC status codes
+          // Map domain errors to gRPC status codes
           return nil, status.Errorf(codes.NotFound, "user %s not found", req.UserId)
       }
       return &pb.UserResponse{Id: user.ID, Name: user.Name, Email: user.Email}, nil
@@ -179,7 +179,7 @@ func showClientPattern() {
   )
 
   func main() {
-      // Tạo connection — không block, lazy connect
+      // Create connection — non-blocking, lazy connect
       conn, err := grpc.NewClient("localhost:50051",
           grpc.WithTransportCredentials(insecure.NewCredentials()),
       )
@@ -188,7 +188,7 @@ func showClientPattern() {
 
       client := pb.NewUserServiceClient(conn)
 
-      // Unary call với timeout
+      // Unary call with timeout
       ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
       defer cancel()
 
@@ -213,7 +213,7 @@ func showClientPattern() {
 }
 
 func showGRPCErrors() {
-	fmt.Println("  gRPC Status Codes (ánh xạ với HTTP):")
+	fmt.Println("  gRPC Status Codes (mapped to HTTP):")
 
 	codes := []struct {
 		code    string
@@ -224,8 +224,8 @@ func showGRPCErrors() {
 		{"codes.InvalidArgument", 400, "Bad request — client error"},
 		{"codes.NotFound", 404, "Resource not found"},
 		{"codes.AlreadyExists", 409, "Duplicate resource"},
-		{"codes.PermissionDenied", 403, "Không có quyền"},
-		{"codes.Unauthenticated", 401, "Chưa xác thực"},
+		{"codes.PermissionDenied", 403, "No permission"},
+		{"codes.Unauthenticated", 401, "Not authenticated"},
 		{"codes.ResourceExhausted", 429, "Rate limit exceeded"},
 		{"codes.Internal", 500, "Server error"},
 		{"codes.Unavailable", 503, "Service down"},
@@ -237,7 +237,7 @@ func showGRPCErrors() {
 	}
 
 	fmt.Println()
-	fmt.Println("  Cách dùng:")
+	fmt.Println("  Usage:")
 	fmt.Printf("  return nil, status.Errorf(codes.NotFound, \"user %%s not found\", id)\n")
 	fmt.Println()
 	fmt.Println("  Client check:")
@@ -245,7 +245,7 @@ func showGRPCErrors() {
 }
 
 // ============================================================
-// REST vs gRPC demo dùng net/http (không cần gRPC binary)
+// REST vs gRPC demo using net/http (no gRPC binary needed)
 // ============================================================
 
 type UserDTO struct {
@@ -270,16 +270,16 @@ func demoRESTvsgRPC() {
 	fmt.Println("  REST call: GET /users/123")
 	fmt.Printf("  Response (JSON): %s", rw.Body.String())
 
-	// gRPC là binary — không thể demo trực tiếp ở đây
-	// nhưng đây là protobuf binary equivalent (ước tính):
+	// gRPC is binary — cannot demo directly here
+	// but this is the protobuf binary equivalent (estimated):
 	user := UserDTO{ID: "123", Name: "Alice", Email: "alice@example.com"}
 	jsonBytes, _ := json.Marshal(user)
 
-	// Protobuf sẽ nhỏ hơn ~3-4x:
+	// Protobuf would be ~3-4x smaller:
 	// field 1 (id): 0x0a 0x03 "123" = 5 bytes
 	// field 2 (name): 0x12 0x05 "Alice" = 7 bytes
 	// field 3 (email): 0x1a ... = ...
-	protoApproxBytes := len(jsonBytes) / 3 // ước tính
+	protoApproxBytes := len(jsonBytes) / 3 // estimate
 
 	fmt.Printf("  JSON size: %d bytes\n", len(jsonBytes))
 	fmt.Printf("  Proto approx: ~%d bytes (3-4x smaller)\n", protoApproxBytes)
@@ -305,7 +305,7 @@ type ServiceClient struct {
 }
 
 func (c *ServiceClient) Call(ctx context.Context, endpoint string) (string, error) {
-	// Simulate network call với timeout
+	// Simulate network call with timeout
 	select {
 	case <-ctx.Done():
 		return "", ctx.Err()
@@ -365,7 +365,7 @@ func demoServiceMesh() {
 
 func showInterceptors() {
 	code := `
-  // Unary interceptor (như middleware trong HTTP)
+  // Unary interceptor (like middleware in HTTP)
   func loggingInterceptor(
       ctx context.Context,
       req any,
@@ -373,7 +373,7 @@ func showInterceptors() {
       handler grpc.UnaryHandler,
   ) (any, error) {
       start := time.Now()
-      resp, err := handler(ctx, req)  // gọi handler thực sự
+      resp, err := handler(ctx, req)  // call the actual handler
       fmt.Printf("RPC %s took %v, err=%v\n", info.FullMethod, time.Since(start), err)
       return resp, err
   }
@@ -395,12 +395,12 @@ func showInterceptors() {
 
 	fmt.Println(code)
 	fmt.Println()
-	fmt.Println("  Các interceptor phổ biến:")
+	fmt.Println("  Common interceptors:")
 	interceptors := []string{
-		"logging — request/response logging với duration",
+		"logging — request/response logging with duration",
 		"auth — JWT/API key validation",
 		"recovery — catch panics, return Internal error",
-		"rate-limiting — giới hạn request rate",
+		"rate-limiting — limit request rate",
 		"tracing — OpenTelemetry span injection",
 		"validation — validate request fields",
 	}

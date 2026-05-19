@@ -9,13 +9,13 @@ import (
 func demoGo125() {
 	fmt.Println("\n--- 1. sync.WaitGroup.Go() (Go 1.25+) ---")
 	// wg.Go() = wg.Add(1) + go func()
-	// Tiện hơn, ít lỗi hơn (quên Add(1))
+	// More convenient, fewer mistakes (forgetting Add(1))
 
 	var wg sync.WaitGroup
 	results := make([]int, 5)
 
 	for i := range 5 {
-		wg.Go(func() { // tự động Add(1)
+		wg.Go(func() { // automatically calls Add(1)
 			results[i] = i * i
 		})
 	}
@@ -58,7 +58,7 @@ func demoGo125() {
 	fmt.Println("      fr.WriteTo(w) // dump recent traces")
 	fmt.Println("  }")
 
-	fmt.Println("\n--- Summary: Evolution từ 1.22 → 1.25 ---")
+	fmt.Println("\n--- Summary: Evolution from 1.22 → 1.25 ---")
 	features := []struct {
 		version string
 		feature string

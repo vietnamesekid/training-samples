@@ -15,7 +15,7 @@ func TestCalculator_Add(t *testing.T) {
 	}
 }
 
-// === Table-Driven Tests — pattern phổ biến nhất trong Go ===
+// === Table-Driven Tests — the most common pattern in Go ===
 
 func TestCalculator_Operations(t *testing.T) {
 	c := NewCalculator()
@@ -81,10 +81,10 @@ func TestCalculator_Div(t *testing.T) {
 	}
 }
 
-// === t.Helper() — helper functions cho tests ===
+// === t.Helper() — helper functions for tests ===
 
 func assertEqual(t *testing.T, got, want float64) {
-	t.Helper() // làm cho error messages chỉ vào caller, không phải helper
+	t.Helper() // makes error messages point to the caller, not the helper
 	if got != want {
 		t.Errorf("got %v, want %v", got, want)
 	}
@@ -106,7 +106,7 @@ func TestCalculator_History(t *testing.T) {
 	}
 }
 
-// === Parallel Tests — chạy độc lập, nhanh hơn ===
+// === Parallel Tests — run independently, faster ===
 
 func TestReverse(t *testing.T) {
 	tests := []struct {
@@ -123,7 +123,7 @@ func TestReverse(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel() // các subtests chạy song song
+			t.Parallel() // subtests run in parallel
 			got := Reverse(tt.input)
 			if got != tt.want {
 				t.Errorf("Reverse(%q) = %q, want %q", tt.input, got, tt.want)
@@ -132,20 +132,20 @@ func TestReverse(t *testing.T) {
 	}
 }
 
-// === TestMain — setup/teardown toàn bộ test suite ===
+// === TestMain — setup/teardown for the entire test suite ===
 
 func TestMain(m *testing.M) {
-	// Setup: chạy trước tất cả tests
-	// Ví dụ: setup DB, start server, load fixtures
+	// Setup: runs before all tests
+	// Example: setup DB, start server, load fixtures
 	// log.Println("Setting up test suite...")
 
-	code := m.Run() // chạy tất cả tests
+	code := m.Run() // run all tests
 
-	// Teardown: chạy sau tất cả tests
-	// Ví dụ: cleanup DB, stop server
+	// Teardown: runs after all tests
+	// Example: cleanup DB, stop server
 	// log.Println("Tearing down test suite...")
 
-	// Không dùng os.Exit trực tiếp — dùng m.Run() return code
+	// Do not call os.Exit directly — use m.Run() return code
 	if code != 0 {
 		// Test failures
 	}

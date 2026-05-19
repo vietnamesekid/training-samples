@@ -10,8 +10,8 @@ import (
 // Middleware type — wrap http.Handler
 type Middleware func(http.Handler) http.Handler
 
-// Chain áp dụng middlewares theo thứ tự: first → last wraps handler
-// Request đi theo thứ tự: m1 → m2 → m3 → handler → m3 → m2 → m1
+// Chain applies middlewares in order: first → last wraps handler
+// Request flows: m1 → m2 → m3 → handler → m3 → m2 → m1
 func Chain(h http.Handler, middlewares ...Middleware) http.Handler {
 	// Apply reverse order so first middleware is outermost
 	for i := len(middlewares) - 1; i >= 0; i-- {
@@ -20,7 +20,7 @@ func Chain(h http.Handler, middlewares ...Middleware) http.Handler {
 	return h
 }
 
-// responseWriter wraps http.ResponseWriter để capture status code
+// responseWriter wraps http.ResponseWriter to capture status code
 type responseWriter struct {
 	http.ResponseWriter
 	status      int
@@ -39,7 +39,7 @@ func (rw *responseWriter) WriteHeader(status int) {
 	}
 }
 
-// LoggingMiddleware log mỗi request với method, path, status, duration
+// LoggingMiddleware logs each request with method, path, status, duration
 func LoggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
@@ -57,7 +57,7 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-// RecoveryMiddleware bắt panic, trả về 500 thay vì crash server
+// RecoveryMiddleware catches panics, returns 500 instead of crashing the server
 func RecoveryMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
@@ -75,7 +75,7 @@ func RecoveryMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-// CORSMiddleware thêm CORS headers cho cross-origin requests
+// CORSMiddleware adds CORS headers for cross-origin requests
 func CORSMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")

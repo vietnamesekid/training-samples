@@ -9,8 +9,8 @@ import (
 func demoMapAtomic() {
 	fmt.Println("\n--- sync.Map ---")
 	// sync.Map: concurrent-safe map
-	// Phù hợp khi: read nhiều hơn write, hoặc keys ít khi thay đổi
-	// KHÔNG phù hợp cho high-write workloads (dùng map + Mutex tốt hơn)
+	// Suitable when: reads are more frequent than writes, or keys rarely change
+	// NOT suitable for high-write workloads (map + Mutex is better)
 	var sm sync.Map
 
 	// Store
@@ -33,11 +33,11 @@ func demoMapAtomic() {
 	// Delete
 	sm.Delete("key2")
 
-	// Range — iterate (thứ tự không đảm bảo)
+	// Range — iterate (order is not guaranteed)
 	fmt.Println("  Range:")
 	sm.Range(func(k, v any) bool {
 		fmt.Printf("    %v = %v\n", k, v)
-		return true // return false để dừng iteration
+		return true // return false to stop iteration
 	})
 
 	// LoadAndDelete — atomic load + delete
@@ -46,8 +46,8 @@ func demoMapAtomic() {
 	}
 
 	fmt.Println("\n--- sync/atomic — lock-free operations ---")
-	// atomic: operations không cần lock (dùng CPU instructions)
-	// Nhanh hơn Mutex cho single value operations
+	// atomic: operations that don't need a lock (use CPU instructions)
+	// Faster than Mutex for single value operations
 
 	// atomic.Int64 (Go 1.19+ — typed atomics)
 	var counter atomic.Int64
@@ -67,14 +67,14 @@ func demoMapAtomic() {
 	var running atomic.Bool
 	running.Store(true)
 	fmt.Printf("  atomic.Bool: %t\n", running.Load())
-	running.Swap(false) // trả về giá trị cũ
+	running.Swap(false) // returns the old value
 	fmt.Printf("  after Swap(false): %t\n", running.Load())
 
 	// CompareAndSwap (CAS) — conditional atomic update
 	var state atomic.Int32
 	state.Store(1)
 
-	// CAS: chỉ set nếu giá trị hiện tại = old
+	// CAS: only set if current value equals old
 	ok := state.CompareAndSwap(1, 2) // if state == 1, set to 2
 	fmt.Printf("  CAS(1→2): ok=%t, state=%d\n", ok, state.Load())
 
@@ -91,7 +91,7 @@ func demoMapAtomic() {
 		fmt.Printf("  atomic.Value config: %+v\n", cfg)
 	}
 
-	// Hot swap config (không cần lock)
+	// Hot swap config (no lock needed)
 	config.Store(AppConfig{Debug: true, LogLevel: "debug"})
 	if v := config.Load(); v != nil {
 		cfg := v.(AppConfig)

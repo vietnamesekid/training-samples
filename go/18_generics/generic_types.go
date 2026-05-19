@@ -38,7 +38,7 @@ func (s *Stack[T]) Len() int { return len(s.items) }
 
 func (s *Stack[T]) IsEmpty() bool { return len(s.items) == 0 }
 
-// All — iterate qua stack (dùng iter.Seq, Go 1.23+)
+// All — iterate over the stack (uses iter.Seq, Go 1.23+)
 func (s *Stack[T]) All() iter.Seq[T] {
 	return func(yield func(T) bool) {
 		for _, v := range s.items {
@@ -49,7 +49,7 @@ func (s *Stack[T]) All() iter.Seq[T] {
 	}
 }
 
-// Optional[T] — safe nullable value (thay thế cho *T trong một số cases)
+// Optional[T] — safe nullable value (replaces *T in some cases)
 type Optional[T any] struct {
 	value *T
 }
@@ -91,7 +91,7 @@ func MakePair[A, B any](a A, b B) Pair[A, B] {
 	return Pair[A, B]{First: a, Second: b}
 }
 
-// Zip: kết hợp 2 slices thành slice of pairs
+// Zip: combine 2 slices into a slice of pairs
 func Zip[A, B any](as []A, bs []B) []Pair[A, B] {
 	n := len(as)
 	if len(bs) < n {
@@ -104,7 +104,7 @@ func Zip[A, B any](as []A, bs []B) []Pair[A, B] {
 	return result
 }
 
-// Result[T] — error handling type (như Rust's Result<T, E>)
+// Result[T] — error handling type (like Rust's Result<T, E>)
 type Result[T any] struct {
 	value T
 	err   error

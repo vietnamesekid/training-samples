@@ -7,13 +7,13 @@ import (
 	"time"
 )
 
-// State của Circuit Breaker
+// State of the Circuit Breaker
 type CBState int
 
 const (
-	StateClosed   CBState = iota // bình thường, cho phép request
-	StateOpen                    // lỗi nhiều, chặn tất cả request
-	StateHalfOpen                // thử phục hồi, cho 1 request qua
+	StateClosed   CBState = iota // normal, allows requests
+	StateOpen                    // too many errors, blocks all requests
+	StateHalfOpen                // trying to recover, allows 1 request through
 )
 
 func (s CBState) String() string {
@@ -22,7 +22,7 @@ func (s CBState) String() string {
 
 var ErrCircuitOpen = errors.New("circuit breaker is open")
 
-// CircuitBreaker ngăn cascade failure bằng cách "ngắt mạch" khi dịch vụ lỗi
+// CircuitBreaker prevents cascade failure by "opening the circuit" when a service fails
 type CircuitBreaker struct {
 	mu sync.Mutex
 
@@ -31,7 +31,7 @@ type CircuitBreaker struct {
 	lastFailed time.Time
 
 	maxFailures int
-	timeout     time.Duration // thời gian chờ trước khi thử lại (HalfOpen)
+	timeout     time.Duration // wait time before retrying (HalfOpen)
 }
 
 func NewCircuitBreaker(maxFailures int, timeout time.Duration) *CircuitBreaker {
@@ -41,13 +41,13 @@ func NewCircuitBreaker(maxFailures int, timeout time.Duration) *CircuitBreaker {
 	}
 }
 
-// Call thực thi fn qua circuit breaker
+// Call executes fn through the circuit breaker
 func (cb *CircuitBreaker) Call(fn func() error) error {
 	cb.mu.Lock()
 
 	switch cb.state {
 	case StateOpen:
-		// Kiểm tra timeout để chuyển sang HalfOpen
+		// Check timeout to transition to HalfOpen
 		if time.Since(cb.lastFailed) > cb.timeout {
 			cb.state = StateHalfOpen
 			fmt.Printf("    CB: %s → HalfOpen (retrying)\n", StateOpen)
@@ -56,12 +56,12 @@ func (cb *CircuitBreaker) Call(fn func() error) error {
 			return ErrCircuitOpen
 		}
 	case StateHalfOpen:
-		// Chỉ cho 1 request qua để test
+		// Only let 1 request through to test
 	}
 
 	cb.mu.Unlock()
 
-	// Thực thi request
+	// Execute request
 	err := fn()
 
 	cb.mu.Lock()
@@ -78,7 +78,7 @@ func (cb *CircuitBreaker) Call(fn func() error) error {
 		return err
 	}
 
-	// Thành công → reset
+	// Success → reset
 	if cb.state == StateHalfOpen {
 		fmt.Printf("    CB: HalfOpen → Closed (recovered)\n")
 	}
@@ -96,13 +96,13 @@ func (cb *CircuitBreaker) State() CBState {
 func demoCircuitBreaker() {
 	failCount := 0
 
-	// Simulate một service hay bị lỗi
+	// Simulate a service that fails frequently
 	unreliableService := func() error {
 		failCount++
 		if failCount <= 4 {
 			return fmt.Errorf("service unavailable (attempt %d)", failCount)
 		}
-		return nil // phục hồi sau 4 lần thất bại
+		return nil // recovers after 4 failures
 	}
 
 	// maxFailures=3, timeout=100ms
@@ -121,7 +121,7 @@ func demoCircuitBreaker() {
 			fmt.Printf("  Request %d: OK (circuit=%s)\n", i+1, state)
 		}
 
-		// Simulate timeout sau request 5 để circuit trở về HalfOpen
+		// Simulate timeout after request 5 to let circuit return to HalfOpen
 		if i == 4 {
 			time.Sleep(120 * time.Millisecond)
 		}

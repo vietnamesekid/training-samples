@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-// HealthStatus kết quả health check
+// HealthStatus is the result of a health check
 type HealthStatus struct {
 	Status    string            `json:"status"`
 	Timestamp string            `json:"timestamp"`
@@ -23,36 +23,36 @@ type MemoryInfo struct {
 	NumGC      uint32 `json:"num_gc"`
 }
 
-// Checker định nghĩa một health check cụ thể
+// Checker defines a specific health check
 type Checker interface {
 	Name() string
 	Check() error
 }
 
-// DatabaseChecker kiểm tra DB connection
+// DatabaseChecker checks the DB connection
 type DatabaseChecker struct {
 	dsn string
 }
 
 func (d *DatabaseChecker) Name() string { return "database" }
 func (d *DatabaseChecker) Check() error {
-	// Trong thực tế: db.PingContext(ctx)
+	// In practice: db.PingContext(ctx)
 	if d.dsn == "" {
 		return fmt.Errorf("no database configured")
 	}
-	return nil // giả sử OK
+	return nil // assume OK
 }
 
-// CacheChecker kiểm tra cache (Redis, etc.)
+// CacheChecker checks the cache (Redis, etc.)
 type CacheChecker struct{}
 
 func (c *CacheChecker) Name() string { return "cache" }
 func (c *CacheChecker) Check() error {
-	// Trong thực tế: redis.Ping()
+	// In practice: redis.Ping()
 	return nil
 }
 
-// HealthHandler trả về handler cho health check endpoint
+// HealthHandler returns a handler for the health check endpoint
 func HealthHandler(checkers []Checker) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		status := HealthStatus{
@@ -61,7 +61,7 @@ func HealthHandler(checkers []Checker) http.HandlerFunc {
 			Checks:    make(map[string]string),
 		}
 
-		// Chạy tất cả checkers
+		// Run all checkers
 		for _, checker := range checkers {
 			if err := checker.Check(); err != nil {
 				status.Checks[checker.Name()] = "unhealthy: " + err.Error()
@@ -89,7 +89,7 @@ func HealthHandler(checkers []Checker) http.HandlerFunc {
 }
 
 // ReadinessHandler — Kubernetes readiness probe
-// Trả về 200 khi app sẵn sàng nhận traffic
+// Returns 200 when the app is ready to receive traffic
 func ReadinessHandler(ready *bool) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if *ready {
@@ -103,7 +103,7 @@ func ReadinessHandler(ready *bool) http.HandlerFunc {
 }
 
 // LivenessHandler — Kubernetes liveness probe
-// Trả về 200 khi app vẫn đang chạy (không bị deadlock)
+// Returns 200 when the app is still running (not deadlocked)
 func LivenessHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
@@ -133,9 +133,9 @@ func demoHealthCheck() {
 	fmt.Printf("  /health status: %d\n", rw.Code)
 	fmt.Printf("  Response: %s", rw.Body.String())
 
-	// Test với checker thất bại
+	// Test with a failing checker
 	failCheckers := []Checker{
-		&DatabaseChecker{dsn: ""}, // sẽ fail
+		&DatabaseChecker{dsn: ""}, // will fail
 		&CacheChecker{},
 	}
 	failHandler := HealthHandler(failCheckers)

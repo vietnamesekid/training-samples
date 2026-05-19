@@ -7,21 +7,21 @@ import (
 
 // === Constraints ===
 
-// Number: tất cả numeric types
-// ~int: tất cả types có underlying type là int (kể cả type MyInt int)
+// Number: all numeric types
+// ~int: all types whose underlying type is int (including type MyInt int)
 type Number interface {
 	~int | ~int8 | ~int16 | ~int32 | ~int64 |
 		~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 |
 		~float32 | ~float64
 }
 
-// Ordered: types có thể so sánh với <, >, ==
-// cmp.Ordered từ Go 1.21 (thay thế constraints.Ordered)
+// Ordered: types that can be compared with <, >, ==
+// cmp.Ordered from Go 1.21 (replaces constraints.Ordered)
 type Ordered = cmp.Ordered
 
 // === Generic Functions ===
 
-// Map: transform slice từ type T sang type U
+// Map: transform a slice from type T to type U
 func Map[T, U any](slice []T, f func(T) U) []U {
 	result := make([]U, len(slice))
 	for i, v := range slice {
@@ -30,7 +30,7 @@ func Map[T, U any](slice []T, f func(T) U) []U {
 	return result
 }
 
-// Filter: lọc slice theo predicate
+// Filter: filter a slice by predicate
 func Filter[T any](slice []T, predicate func(T) bool) []T {
 	var result []T
 	for _, v := range slice {
@@ -41,7 +41,7 @@ func Filter[T any](slice []T, predicate func(T) bool) []T {
 	return result
 }
 
-// Reduce: fold slice thành 1 value
+// Reduce: fold a slice into a single value
 func Reduce[T, U any](slice []T, initial U, f func(U, T) U) U {
 	acc := initial
 	for _, v := range slice {
@@ -50,7 +50,7 @@ func Reduce[T, U any](slice []T, initial U, f func(U, T) U) U {
 	return acc
 }
 
-// Sum: sum của numeric slice
+// Sum: sum of a numeric slice
 func Sum[T Number](slice []T) T {
 	var total T
 	for _, v := range slice {
@@ -59,7 +59,7 @@ func Sum[T Number](slice []T) T {
 	return total
 }
 
-// Max: tìm max trong slice
+// Max: find the max in a slice
 func Max[T Ordered](slice []T) T {
 	if len(slice) == 0 {
 		var zero T
@@ -74,7 +74,7 @@ func Max[T Ordered](slice []T) T {
 	return max
 }
 
-// Contains: kiểm tra element có trong slice
+// Contains: check if an element is in a slice
 func Contains[T comparable](slice []T, item T) bool {
 	for _, v := range slice {
 		if v == item {
@@ -84,7 +84,7 @@ func Contains[T comparable](slice []T, item T) bool {
 	return false
 }
 
-// Keys: lấy keys từ map
+// Keys: get keys from a map
 func Keys[K comparable, V any](m map[K]V) []K {
 	keys := make([]K, 0, len(m))
 	for k := range m {
@@ -93,7 +93,7 @@ func Keys[K comparable, V any](m map[K]V) []K {
 	return keys
 }
 
-// Ptr: trả về pointer tới value (utility function)
+// Ptr: return a pointer to a value (utility function)
 func Ptr[T any](v T) *T {
 	return &v
 }

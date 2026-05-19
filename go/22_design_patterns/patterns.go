@@ -42,7 +42,7 @@ func demoFunctionalOptions() {
 		s2.host, s2.port, s2.timeout, s2.maxConns)
 }
 
-// === 2. Builder Pattern — xây dựng complex objects step by step ===
+// === 2. Builder Pattern — build complex objects step by step ===
 
 type Query struct {
 	table      string
@@ -123,7 +123,7 @@ type User struct {
 	Name string
 }
 
-// Interface định nghĩa ở use site (service package), không ở implement site
+// Interface defined at the use site (service package), not the implementation site
 type UserRepository interface {
 	FindByID(id int) (*User, error)
 	Save(u *User) error
@@ -132,7 +132,7 @@ type UserRepository interface {
 type UserService struct {
 	repo   UserRepository
 	logger func(string) // injected logger
-	clock  func() time.Time // injected clock (dễ test)
+	clock  func() time.Time // injected clock (easy to test)
 }
 
 func NewUserService(repo UserRepository) *UserService {
@@ -148,7 +148,7 @@ func (s *UserService) GetUser(id int) (*User, error) {
 	return s.repo.FindByID(id)
 }
 
-// In-memory implementation (production sẽ dùng PostgresRepo, MongoRepo, etc.)
+// In-memory implementation (production will use PostgresRepo, MongoRepo, etc.)
 type InMemoryUserRepo struct {
 	users map[int]*User
 }
@@ -329,7 +329,7 @@ func demoStrategy() {
 	}
 }
 
-// === 6. Singleton với sync.Once ===
+// === 6. Singleton with sync.Once ===
 
 type DBConnection struct {
 	DSN string
@@ -349,7 +349,7 @@ func GetDBConnection() *DBConnection {
 }
 
 func demoSingleton() {
-	// Gọi nhiều lần — chỉ init 1 lần
+	// Called multiple times — only initialized once
 	for range 3 {
 		db := GetDBConnection()
 		fmt.Printf("  DB: %s\n", db.DSN)

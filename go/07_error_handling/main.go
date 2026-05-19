@@ -1,5 +1,5 @@
-// Bài 7: Error Handling — xử lý lỗi idiomatically trong Go
-// Chạy: go run .
+// Lesson 7: Error Handling — handling errors idiomatically in Go
+// Run: go run .
 package main
 
 import (
@@ -8,8 +8,8 @@ import (
 	"strconv"
 )
 
-// === Sentinel Errors — error values có thể so sánh ===
-// Định nghĩa ở package level, tên bắt đầu bằng Err
+// === Sentinel Errors — error values that can be compared ===
+// Defined at package level, names start with Err
 
 var (
 	ErrNotFound     = errors.New("not found")
@@ -19,7 +19,7 @@ var (
 
 // === Custom Error Types ===
 
-// ValidationError implements error interface
+// ValidationError implements the error interface
 type ValidationError struct {
 	Field   string
 	Message string
@@ -29,7 +29,7 @@ func (e *ValidationError) Error() string {
 	return fmt.Sprintf("validation error: field=%s, message=%s", e.Field, e.Message)
 }
 
-// DBError với Unwrap — cho phép errors.Is/As traverse error chain
+// DBError with Unwrap — allows errors.Is/As to traverse the error chain
 type DBError struct {
 	Code    int
 	Message string
@@ -44,10 +44,10 @@ func (e *DBError) Error() string {
 }
 
 func (e *DBError) Unwrap() error {
-	return e.Err // cho phép errors.Is/As traverse chain
+	return e.Err // allows errors.Is/As to traverse the chain
 }
 
-// HTTPError với multiple wrapped errors (Go 1.20+ errors.Join)
+// HTTPError with multiple wrapped errors (Go 1.20+ errors.Join)
 type MultiError struct {
 	Errors []error
 }
@@ -82,11 +82,11 @@ func findUser(id int) (*struct{ Name string }, error) {
 func getFromDB(userID int) error {
 	_, err := findUser(userID)
 	if err != nil {
-		// Wrap error với context — thêm thông tin vào error chain
+		// Wrap the error with context — add information to the error chain
 		return &DBError{
 			Code:    500,
 			Message: "query failed",
-			Err:     err, // err được wrap vào DBError
+			Err:     err, // err is wrapped into DBError
 		}
 	}
 	return nil
@@ -95,7 +95,7 @@ func getFromDB(userID int) error {
 func processRequest(userID int) error {
 	err := getFromDB(userID)
 	if err != nil {
-		// Tiếp tục wrap với context
+		// Continue wrapping with context
 		return fmt.Errorf("processRequest(userID=%d): %w", userID, err)
 	}
 	return nil
@@ -115,7 +115,7 @@ func parseAge(s string) (int, error) {
 func main() {
 	fmt.Println("=== 1. errors.New & fmt.Errorf ===")
 	err1 := errors.New("simple error")
-	err2 := fmt.Errorf("wrapped: %w", err1) // %w tạo wrapped error
+	err2 := fmt.Errorf("wrapped: %w", err1) // %w creates a wrapped error
 	fmt.Printf("err1: %v\n", err1)
 	fmt.Printf("err2: %v\n", err2)
 	fmt.Printf("errors.Is(err2, err1): %t\n", errors.Is(err2, err1))
@@ -137,16 +137,16 @@ func main() {
 	err3 := processRequest(999)
 	fmt.Printf("processRequest(999):\n  %v\n", err3)
 
-	// errors.Is traverse toàn bộ error chain
+	// errors.Is traverses the entire error chain
 	fmt.Printf("errors.Is(err3, ErrNotFound): %t\n", errors.Is(err3, ErrNotFound))
 
-	// errors.As tìm type cụ thể trong chain
+	// errors.As finds a specific type in the chain
 	var dbErr *DBError
 	if errors.As(err3, &dbErr) {
 		fmt.Printf("errors.As DBError: code=%d, msg=%s\n", dbErr.Code, dbErr.Message)
 	}
 
-	// Cả ValidationError cũng có thể tìm thấy qua chain
+	// ValidationError can also be found through the chain
 	var valErr2 *ValidationError
 	if errors.As(err3, &valErr2) {
 		fmt.Printf("errors.As ValidationError: field=%s\n", valErr2.Field)
@@ -162,7 +162,7 @@ func main() {
 	errs := []error{
 		fmt.Errorf("error 1: %w", ErrNotFound),
 		fmt.Errorf("error 2: %w", ErrInvalidInput),
-		nil, // nil được bỏ qua
+		nil, // nil is ignored
 	}
 	joinErr := errors.Join(errs...)
 	fmt.Printf("errors.Join: %v\n", joinErr)
@@ -185,7 +185,7 @@ func main() {
 }
 
 func processWithEarlyReturn(userID int, ageStr string) {
-	// Early return pattern: xử lý lỗi ngay, không nest
+	// Early return pattern: handle errors immediately, avoid nesting
 	if userID <= 0 {
 		fmt.Printf("  processWithEarlyReturn(%d, %q): %v\n",
 			userID, ageStr,

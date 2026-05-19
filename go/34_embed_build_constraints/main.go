@@ -1,6 +1,6 @@
-// Bài 34: Embed & Build Constraints
+// Lesson 34: Embed & Build Constraints
 // //go:embed, //go:generate, //go:build constraints, GOOS/GOARCH, cross-compile
-// Chạy: go run .
+// Run: go run .
 package main
 
 import (
@@ -12,7 +12,7 @@ import (
 	"text/template"
 )
 
-// embed directives phải ngay trước var declaration (không có blank line)
+// embed directives must be immediately before the var declaration (no blank line)
 
 //go:embed templates/*.tmpl
 var templateFiles embed.FS
@@ -29,7 +29,7 @@ func main() {
 	fmt.Println("\n=== 1. //go:embed Directives ===")
 	demoEmbed()
 
-	fmt.Println("\n=== 2. Template Rendering với embed.FS ===")
+	fmt.Println("\n=== 2. Template Rendering with embed.FS ===")
 	demoTemplates()
 
 	fmt.Println("\n=== 3. Build Constraints ===")
@@ -46,7 +46,7 @@ func demoEmbed() {
 	// embed single string
 	fmt.Printf("  Version (//go:embed VERSION): %q\n", version)
 
-	// embed.FS — đọc files
+	// embed.FS — read files
 	data, err := staticFiles.ReadFile("static/index.html")
 	if err != nil {
 		fmt.Printf("  ReadFile error: %v\n", err)
@@ -67,11 +67,11 @@ func demoEmbed() {
 
 	fmt.Println()
 	fmt.Println("  embed.FS vs os.Open tradeoffs:")
-	fmt.Println("  + Single binary deployment — không cần ship separate assets")
-	fmt.Println("  + Files always present — không có missing file at runtime")
-	fmt.Println("  - Binary size tăng")
-	fmt.Println("  - Không thể update assets mà không rebuild")
-	fmt.Println("  - Không phù hợp cho user-generated content")
+	fmt.Println("  + Single binary deployment — no need to ship separate assets")
+	fmt.Println("  + Files always present — no missing file at runtime")
+	fmt.Println("  - Binary size increases")
+	fmt.Println("  - Cannot update assets without rebuilding")
+	fmt.Println("  - Not suitable for user-generated content")
 
 	fmt.Println()
 	fmt.Println("  Embed patterns:")
@@ -84,7 +84,7 @@ func demoEmbed() {
 }
 
 func demoTemplates() {
-	// Parse templates từ embedded FS
+	// Parse templates from embedded FS
 	tmpl, err := template.ParseFS(templateFiles, "templates/*.tmpl")
 	if err != nil {
 		fmt.Printf("  ParseFS error: %v\n", err)
@@ -126,12 +126,12 @@ func demoBuildConstraints() {
 	fmt.Printf("  Current: GOOS=%s GOARCH=%s\n", runtime.GOOS, runtime.GOARCH)
 	fmt.Println()
 
-	// platform-specific code đang chạy
+	// platform-specific code running here
 	platformInfo()
 }
 
 func demoCrossCompile() {
-	fmt.Println("  Cross compilation — không cần toolchain trên target platform:")
+	fmt.Println("  Cross compilation — no toolchain needed on the target platform:")
 	fmt.Println()
 
 	targets := []struct{ os, arch string }{
@@ -171,12 +171,12 @@ func demoGenerate() {
 	fmt.Println("  //go:generate go run ./cmd/gen/main.go")
 	fmt.Println()
 	fmt.Println("  Run: go generate ./...")
-	fmt.Println("  go generate tìm tất cả //go:generate directives và chạy commands")
+	fmt.Println("  go generate finds all //go:generate directives and runs the commands")
 	fmt.Println()
-	fmt.Println("  NGUYÊN TẮC:")
-	fmt.Println("  - Commit generated files vào repo (không generate trong CI)")
-	fmt.Println("  - //go:generate nằm trong file .go, thường gần code nó generate cho")
-	fmt.Println("  - Dùng go:generate + stringer cho enum String() method")
+	fmt.Println("  PRINCIPLE:")
+	fmt.Println("  - Commit generated files to the repo (don't generate in CI)")
+	fmt.Println("  - //go:generate goes in the .go file, usually near the code it generates for")
+	fmt.Println("  - Use go:generate + stringer for enum String() method")
 	fmt.Println()
 	fmt.Println("  stringer example:")
 	fmt.Println("  type Weekday int")

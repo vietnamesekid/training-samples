@@ -7,8 +7,8 @@ import (
 	"time"
 )
 
-// Semaphore = buffered channel — giới hạn số operations đồng thời
-// Dùng khi: giới hạn concurrent DB connections, API calls, file I/O
+// Semaphore = buffered channel — limits the number of concurrent operations
+// Use when: limiting concurrent DB connections, API calls, file I/O
 
 type Semaphore chan struct{}
 
@@ -17,7 +17,7 @@ func NewSemaphore(n int) Semaphore {
 }
 
 func (s Semaphore) Acquire() {
-	s <- struct{}{} // block nếu đầy
+	s <- struct{}{} // block if full
 }
 
 func (s Semaphore) Release() {
@@ -26,7 +26,7 @@ func (s Semaphore) Release() {
 
 func demoSemaphore() {
 	fmt.Println("\n--- Semaphore (buffered channel) ---")
-	sem := NewSemaphore(3) // tối đa 3 concurrent operations
+	sem := NewSemaphore(3) // at most 3 concurrent operations
 	var wg sync.WaitGroup
 	var active atomic.Int32
 

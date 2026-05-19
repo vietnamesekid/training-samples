@@ -6,10 +6,10 @@ import (
 )
 
 // === Functional Options Pattern ===
-// Pattern này giải quyết vấn đề: "Làm sao có constructor flexible với nhiều optional params?"
+// This pattern solves the problem: "How do you have a flexible constructor with many optional params?"
 //
-// Vấn đề:
-//   NewServer("localhost", 8080, 30*time.Second, true, false, 100) ← không rõ ràng
+// Problem:
+//   NewServer("localhost", 8080, 30*time.Second, true, false, 100) ← not clear
 //
 // Solution: functional options
 
@@ -22,10 +22,10 @@ type HTTPServer struct {
 	readTimeout time.Duration
 }
 
-// ServerOption là một function modify *HTTPServer
+// ServerOption is a function that modifies *HTTPServer
 type ServerOption func(*HTTPServer)
 
-// Các option functions — mỗi function set một field
+// Option functions — each function sets one field
 func WithPort(port int) ServerOption {
 	return func(s *HTTPServer) {
 		s.port = port
@@ -54,7 +54,7 @@ func WithTLS(enabled bool) ServerOption {
 	}
 }
 
-// NewHTTPServer với default values + optional overrides
+// NewHTTPServer with default values + optional overrides
 func NewHTTPServer(host string, opts ...ServerOption) *HTTPServer {
 	// Default configuration
 	s := &HTTPServer{
@@ -66,7 +66,7 @@ func NewHTTPServer(host string, opts ...ServerOption) *HTTPServer {
 		readTimeout: 10 * time.Second,
 	}
 
-	// Apply options theo thứ tự
+	// Apply options in order
 	for _, opt := range opts {
 		opt(s)
 	}
@@ -84,18 +84,18 @@ func (s *HTTPServer) String() string {
 }
 
 func demoFunctionalOptions() {
-	// Minimal — chỉ dùng defaults
+	// Minimal — use only defaults
 	s1 := NewHTTPServer("localhost")
 	fmt.Printf("  Default server: %s\n", s1)
 
-	// Custom port và timeout
+	// Custom port and timeout
 	s2 := NewHTTPServer("example.com",
 		WithPort(9090),
 		WithTimeout(60*time.Second),
 	)
 	fmt.Printf("  Custom server: %s\n", s2)
 
-	// Production với TLS
+	// Production with TLS
 	s3 := NewHTTPServer("api.example.com",
 		WithTLS(true),
 		WithMaxConns(5000),

@@ -1,6 +1,6 @@
-// Bài 30: JSON Encoding & Decoding
+// Lesson 30: JSON Encoding & Decoding
 // json.Marshal/Unmarshal, struct tags, custom marshaling, streaming, RawMessage
-// Chạy: go run .
+// Run: go run .
 package main
 
 import (
@@ -83,9 +83,9 @@ type User struct {
 	ID        int       `json:"id"`
 	Name      string    `json:"name"`
 	Email     string    `json:"email"`
-	Password  string    `json:"-"`         // luôn bỏ qua khi marshal/unmarshal
+	Password  string    `json:"-"`         // always omitted in marshal/unmarshal
 	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at,omitempty"` // bỏ qua nếu zero value
+	UpdatedAt time.Time `json:"updated_at,omitempty"` // omitted if zero value
 	Internal  string    `json:"internal,omitempty"`
 }
 
@@ -94,14 +94,14 @@ func demoStructTags() {
 		ID:       1,
 		Name:     "Alice",
 		Email:    "alice@example.com",
-		Password: "secret123", // sẽ không xuất hiện trong JSON
+		Password: "secret123", // will not appear in JSON
 	}
 
 	data, _ := json.MarshalIndent(u, "  ", "  ")
 	fmt.Printf("  Output:\n%s\n", data)
 	fmt.Println("  Note: Password (tag \"-\") bị loại, UpdatedAt/Internal (\"omitempty\") bị loại vì zero")
 
-	// Unmarshal với tags
+	// Unmarshal with tags
 	jsonStr := `{"id":2,"name":"Bob","email":"bob@example.com","password":"ignored"}`
 	var u2 User
 	json.Unmarshal([]byte(jsonStr), &u2)
@@ -113,7 +113,7 @@ func demoStructTags() {
 // 3. Custom Marshaling
 // ============================================================
 
-// Duration wrapper — marshal/unmarshal thành "1h30m" thay vì nanoseconds
+// Duration wrapper — marshal/unmarshal as "1h30m" instead of nanoseconds
 type Duration struct {
 	time.Duration
 }
@@ -135,7 +135,7 @@ func (d *Duration) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// Money — marshal thành cents integer thay vì float (tránh float precision)
+// Money — marshal as cents integer instead of float (avoids float precision issues)
 type Money struct {
 	Cents int64
 }
@@ -192,7 +192,7 @@ func demoCustomMarshal() {
 
 type APIResponse struct {
 	Type    string          `json:"type"`
-	Payload json.RawMessage `json:"payload"` // decode sau dựa vào Type
+	Payload json.RawMessage `json:"payload"` // decode later based on Type
 }
 
 type OrderPayload struct {
@@ -231,7 +231,7 @@ func demoRawMessage() {
 		}
 	}
 
-	// RawMessage cũng hữu ích khi forward JSON mà không decode
+	// RawMessage is also useful when forwarding JSON without decoding it
 	raw := json.RawMessage(`{"key":"value","nested":{"a":1}}`)
 	combined := struct {
 		Meta    string          `json:"meta"`
@@ -282,7 +282,7 @@ func demoStreaming() {
 		fmt.Printf("  Decoded: %+v\n", p)
 	}
 
-	// NGUYÊN TẮC:
+	// PRINCIPLE:
 	// - json.Marshal/Unmarshal: in-memory, small payloads
 	// - json.Encoder/Decoder: streaming, large payloads, avoid loading all into memory
 }
@@ -291,10 +291,10 @@ func demoStreaming() {
 // 6. Common Patterns
 // ============================================================
 
-// Nullable fields với pointer
+// Nullable fields with pointer
 type Profile struct {
 	Name     string  `json:"name"`
-	Bio      *string `json:"bio"`       // null nếu nil, omit nếu dùng omitempty
+	Bio      *string `json:"bio"`       // null if nil, omit if using omitempty
 	Age      *int    `json:"age"`
 	Verified bool    `json:"verified"`
 }
@@ -308,7 +308,7 @@ func demoCommonPatterns() {
 	data, _ := json.Marshal(p)
 	fmt.Printf("  With values: %s\n", data)
 
-	p2 := Profile{Name: "Bob"} // Bio và Age là nil → "null"
+	p2 := Profile{Name: "Bob"} // Bio and Age are nil → "null"
 	data, _ = json.Marshal(p2)
 	fmt.Printf("  With nil: %s\n", data)
 
@@ -317,15 +317,15 @@ func demoCommonPatterns() {
 		Name string `json:"name"`
 	}
 	dec := json.NewDecoder(strings.NewReader(`{"name":"Alice","unknown_field":"value"}`))
-	dec.DisallowUnknownFields() // return error nếu có field lạ
+	dec.DisallowUnknownFields() // return error if unknown field is present
 	var s Strict
 	if err := dec.Decode(&s); err != nil {
 		fmt.Printf("  DisallowUnknownFields error: %v\n", err)
 	}
 
-	// number decoder — tránh float64 cho large integers
+	// number decoder — avoid float64 for large integers
 	dec2 := json.NewDecoder(strings.NewReader(`{"id":9007199254740993}`))
-	dec2.UseNumber() // parse number thành json.Number thay vì float64
+	dec2.UseNumber() // parse number as json.Number instead of float64
 	var m map[string]any
 	dec2.Decode(&m)
 	num := m["id"].(json.Number)

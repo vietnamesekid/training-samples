@@ -8,8 +8,8 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-// errgroup: chạy nhiều goroutines, collect errors, cancel tất cả nếu 1 fail
-// Tốt hơn WaitGroup khi cần error handling
+// errgroup: run multiple goroutines, collect errors, cancel all if one fails
+// Better than WaitGroup when error handling is needed
 
 type UserProfile struct {
 	Name   string
@@ -48,12 +48,12 @@ func demoErrGroup() {
 	ctx := context.Background()
 	userID := 42
 
-	fmt.Println("\n--- Parallel fetch với errgroup ---")
+	fmt.Println("\n--- Parallel fetch with errgroup ---")
 
 	var profile UserProfile
 	g, ctx := errgroup.WithContext(ctx)
 
-	// Launch 3 goroutines cùng lúc
+	// Launch 3 goroutines simultaneously
 	g.Go(func() error {
 		name, err := fetchUserName(ctx, userID)
 		if err != nil {
@@ -81,7 +81,7 @@ func demoErrGroup() {
 		return nil
 	})
 
-	// Wait chờ tất cả xong, trả về error đầu tiên (nếu có)
+	// Wait for all to finish, returns the first error (if any)
 	if err := g.Wait(); err != nil {
 		fmt.Printf("  Error: %v\n", err)
 	} else {
@@ -89,10 +89,10 @@ func demoErrGroup() {
 			profile.Name, profile.Orders, profile.Points)
 	}
 
-	fmt.Println("\n--- errgroup với SetLimit ---")
-	// SetLimit: giới hạn số goroutines đồng thời
+	fmt.Println("\n--- errgroup with SetLimit ---")
+	// SetLimit: limit the number of concurrent goroutines
 	g2, _ := errgroup.WithContext(context.Background())
-	g2.SetLimit(3) // tối đa 3 goroutines cùng lúc
+	g2.SetLimit(3) // at most 3 goroutines at a time
 
 	for i := range 10 {
 		task := i

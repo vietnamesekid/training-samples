@@ -1,5 +1,5 @@
-// Bài 10: Goroutines & Channels — concurrency primitives của Go
-// Chạy: go run .
+// Lesson 10: Goroutines & Channels — concurrency primitives in Go
+// Run: go run .
 package main
 
 import "fmt"

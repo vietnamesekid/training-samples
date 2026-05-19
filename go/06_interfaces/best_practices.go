@@ -8,14 +8,14 @@ import (
 
 // === Interface Best Practices ===
 
-// NGUYÊN TẮC 1: "Accept interfaces, return concrete types"
-// Nhận interface → flexible, testable
-// Trả về concrete type → caller có đủ thông tin
+// PRINCIPLE 1: "Accept interfaces, return concrete types"
+// Accept interfaces → flexible and testable
+// Return concrete types → caller has full information
 
-// BAD: trả về interface khi concrete type đủ rồi
+// BAD: returning an interface when a concrete type is sufficient
 // func NewBuffer() io.Writer { ... }
 
-// GOOD: trả về concrete, nhận interface
+// GOOD: return concrete, accept interface
 type Buffer struct {
 	builder strings.Builder
 }
@@ -32,15 +32,15 @@ func (b *Buffer) String() string {
 	return b.builder.String()
 }
 
-// Hàm nhận io.Writer → hoạt động với bất kỳ implementation nào
+// Function accepts io.Writer → works with any implementation
 func writeGreeting(w io.Writer, name string) {
 	fmt.Fprintf(w, "Hello, %s!\n", name)
 }
 
-// NGUYÊN TẮC 2: Interface nhỏ là interface tốt (Interface Segregation)
-// io.Reader chỉ có 1 method → cực kỳ mạnh vì mọi thứ đều implement được
+// PRINCIPLE 2: Small interfaces are good interfaces (Interface Segregation)
+// io.Reader has only 1 method → extremely powerful because everything can implement it
 
-// BAD: interface quá lớn → khó mock, khó implement
+// BAD: interface too large → hard to mock, hard to implement
 type BigRepository interface {
 	FindByID(id int) (*User2, error)
 	FindAll() ([]*User2, error)
@@ -57,7 +57,7 @@ type User2 struct {
 	Email string
 }
 
-// GOOD: chia thành interface nhỏ — mỗi use case cần interface riêng
+// GOOD: split into small interfaces — each use case gets its own interface
 type UserFinder interface {
 	FindByID(id int) (*User2, error)
 }
@@ -70,13 +70,13 @@ type UserUpdater interface {
 	Update(u *User2) error
 }
 
-// NGUYÊN TẮC 3: Định nghĩa interface ở nơi SỬ DỤNG, không phải nơi implement
+// PRINCIPLE 3: Define interfaces at the USE SITE, not the implementation site
 // → "Define interfaces at use site, not at implement site"
 //
-// Bad: package "store" define interface, package "service" import "store"
-// Good: package "service" define interface nó cần, "store" implement ngầm
+// Bad: package "store" defines the interface, package "service" imports "store"
+// Good: package "service" defines the interface it needs, "store" implements it implicitly
 
-// UserService định nghĩa interface nó cần (ở đây, trong service)
+// UserService defines the interface it needs (here, within the service)
 type UserRepository interface {
 	FindByID(id int) (*User2, error)
 }
@@ -123,10 +123,10 @@ func demoInterfaceBestPractices() {
 	fmt.Println("--- Accept interfaces, return concrete types ---")
 
 	buf := NewBuffer()
-	writeGreeting(buf, "Gopher") // truyền *Buffer qua io.Writer
+	writeGreeting(buf, "Gopher") // pass *Buffer via io.Writer
 	fmt.Printf("  buffer contains: %q\n", buf.String())
 
-	// Cũng hoạt động với strings.Builder
+	// Also works with strings.Builder
 	var sb strings.Builder
 	writeGreeting(&sb, "World")
 	fmt.Printf("  strings.Builder: %q\n", sb.String())

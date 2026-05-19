@@ -1,5 +1,5 @@
-// Bài 4: Structs & Methods — kiểu dữ liệu tự định nghĩa
-// Chạy: go run .
+// Lesson 4: Structs & Methods — user-defined data types
+// Run: go run .
 package main
 
 import (
@@ -9,14 +9,14 @@ import (
 	"unsafe"
 )
 
-// === Struct cơ bản ===
+// === Basic Struct ===
 
-// Quy ước: PascalCase cho exported, camelCase cho unexported
+// Convention: PascalCase for exported, camelCase for unexported
 type Person struct {
-	Name    string  // exported — accessible từ bên ngoài package
+	Name    string  // exported — accessible from outside the package
 	Age     int
 	Email   string
-	address Address // unexported — chỉ dùng trong package này
+	address Address // unexported — only usable within this package
 	score   int     // unexported
 }
 
@@ -26,7 +26,7 @@ type Address struct {
 	Zip    string
 }
 
-// Constructor pattern — Go không có constructor, dùng hàm NewXxx
+// Constructor pattern — Go has no constructors, use a NewXxx function instead
 func NewPerson(name string, age int, email string) (*Person, error) {
 	if name == "" {
 		return nil, fmt.Errorf("name cannot be empty")
@@ -41,8 +41,8 @@ func NewPerson(name string, age int, email string) (*Person, error) {
 	}, nil
 }
 
-// Value receiver — nhận COPY của struct, KHÔNG mutate được
-// Dùng khi: struct nhỏ, không cần mutate, type là primitive/immutable
+// Value receiver — receives a COPY of the struct, CANNOT mutate it
+// Use when: struct is small, no mutation needed, type is primitive/immutable
 func (p Person) String() string {
 	return fmt.Sprintf("%s (age=%d, email=%s)", p.Name, p.Age, p.Email)
 }
@@ -51,9 +51,9 @@ func (p Person) IsAdult() bool {
 	return p.Age >= 18
 }
 
-// Pointer receiver — nhận POINTER, CÓ THỂ mutate
-// NGUYÊN TẮC: Nếu bất kỳ method nào cần pointer receiver,
-// dùng pointer receiver cho TẤT CẢ methods của type đó.
+// Pointer receiver — receives a POINTER, CAN mutate the struct
+// PRINCIPLE: If any method needs a pointer receiver,
+// use pointer receivers for ALL methods of that type.
 func (p *Person) Birthday() {
 	p.Age++
 }
@@ -66,7 +66,7 @@ func (p *Person) GetAddress() Address {
 	return p.address
 }
 
-// === Embedding — composition, không phải inheritance ===
+// === Embedding — composition, not inheritance ===
 
 type Employee struct {
 	Person            // embedded — promotes all methods and fields
@@ -75,22 +75,22 @@ type Employee struct {
 	JobTitle  string
 }
 
-// Employee có thể override method của Person
+// Employee can override methods from Person
 func (e Employee) String() string {
 	return fmt.Sprintf("%s @ %s (salary=%.0f)", e.Name, e.Company, e.Salary)
 }
 
-// === Struct Tags — metadata cho reflection ===
+// === Struct Tags — metadata for reflection ===
 type User struct {
 	ID        int     `json:"id"`
 	Username  string  `json:"username"`
-	Password  string  `json:"-"`                          // không bao giờ marshal
-	Email     string  `json:"email,omitempty"`            // bỏ qua nếu empty
+	Password  string  `json:"-"`                          // never marshal
+	Email     string  `json:"email,omitempty"`            // omit if empty
 	Age       int     `json:"age" validate:"min=0,max=150"`
 	Score     float64 `json:"score" db:"user_score"`
 }
 
-// === Anonymous struct — dùng cho one-off data shapes ===
+// === Anonymous struct — use for one-off data shapes ===
 
 // === Struct comparison ===
 
@@ -102,7 +102,7 @@ func (p Point) Distance(other Point) float64 {
 	return math.Sqrt(dx*dx + dy*dy)
 }
 
-// === Struct padding và memory layout ===
+// === Struct padding and memory layout ===
 
 // BadLayout: 24 bytes (padding waste)
 type BadLayout struct {
@@ -124,11 +124,11 @@ type GoodLayout struct {
 func main() {
 	fmt.Println("=== 1. Tạo Struct ===")
 
-	// Tạo với struct literal
+	// Create with struct literal
 	p1 := Person{Name: "Alice", Age: 30, Email: "alice@example.com"}
-	fmt.Println("Literal:", p1) // gọi p1.String() qua fmt.Stringer
+	fmt.Println("Literal:", p1) // calls p1.String() via fmt.Stringer
 
-	// Tạo với constructor
+	// Create with constructor
 	p2, err := NewPerson("Bob", 25, "bob@example.com")
 	if err != nil {
 		fmt.Println("Error:", err)
@@ -136,11 +136,11 @@ func main() {
 		fmt.Println("Constructor:", p2)
 	}
 
-	// Zero value struct — tất cả fields là zero value
+	// Zero value struct — all fields are zero values
 	var p3 Person
-	fmt.Printf("Zero value: %+v\n", p3) // %+v in kèm field names
+	fmt.Printf("Zero value: %+v\n", p3) // %+v prints field names as well
 
-	// Anonymous struct — dùng cho one-off, config, test data
+	// Anonymous struct — use for one-off shapes, config, test data
 	config := struct {
 		Host string
 		Port int
@@ -169,7 +169,7 @@ func main() {
 		JobTitle: "Software Engineer",
 	}
 
-	// Promoted fields và methods
+	// Promoted fields and methods
 	fmt.Printf("emp.Name = %s (promoted từ Person)\n", emp.Name)    // emp.Person.Name
 	fmt.Printf("emp.IsAdult() = %t (promoted)\n", emp.IsAdult())     // emp.Person.IsAdult()
 	emp.Birthday()  // emp.Person.Birthday()
@@ -195,7 +195,7 @@ func main() {
 	fmt.Printf("pt1 == pt3: %t\n", pt1 == pt3)
 	fmt.Printf("Distance(pt1, pt3): %.3f\n", pt1.Distance(pt3))
 
-	// reflect.DeepEqual — dùng khi struct chứa slice/map (không comparable)
+	// reflect.DeepEqual — use when struct contains slices/maps (not comparable)
 	type Config struct {
 		Tags []string
 	}
